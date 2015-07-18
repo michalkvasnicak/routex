@@ -1,5 +1,5 @@
 import { createStore, combineReducers, compose } from 'redux';
-import { createRoutex, actions } from '../src';
+import { createRoutex, actions, MemoryHistory } from '../src';
 import { stub, spy } from 'sinon';
 import { expect } from 'chai';
 
@@ -109,6 +109,17 @@ describe('routex', () => {
                 'Parameter `id` of route `with-variables` has invalid value. Check route definition.'
             );
         });
+    });
+
+    it('throws error if route contains two variables with same name', () => {
+        expect(
+            () => {
+                createRoutex(
+                    [ { name: 'index', path: '/:variable/:variable' }],
+                    new MemoryHistory()
+                );
+            }
+        ).to.throw('Route parameter `variable` is already defined.');
     });
 
     it('replaces state in history on initial load if router state is initial', (done) => {
