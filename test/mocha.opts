@@ -1,0 +1,4 @@
+--ui bdd
+--compilers js:babel/register
+--recursive
+test/**/*.spec.js
