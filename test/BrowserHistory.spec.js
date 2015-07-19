@@ -24,7 +24,7 @@ describe('BrowserHistory (HTML5)', () => {
 
     describe('#pushState()', () => {
         it('pushes new state to history and sets new url if is not the same', () => {
-            _history.pushState({ path: '/test', query: { search: 'a' }});
+            _history.pushState({ pathname: '/test', query: { search: 'a' }});
             expect(window.location.pathname).to.be.equal('/test');
             expect(window.location.search).to.be.equal('?search=a');
         });
@@ -34,8 +34,8 @@ describe('BrowserHistory (HTML5)', () => {
         const listener = spy(() => {});
 
         // go forward
-        _history.pushState({ path: '/' });
-        _history.pushState({ path: '/test' });
+        _history.pushState({ pathname: '/' });
+        _history.pushState({ pathname: '/test' });
         const unsubscribe = _history.addPopStateListener(listener);
 
         window.history.back();
@@ -54,8 +54,8 @@ describe('BrowserHistory (HTML5)', () => {
         const listener = spy(() => {});
 
         // go forward
-        _history.pushState({ path: '/' });
-        _history.pushState({ path: '/test' });
+        _history.pushState({ pathname: '/' });
+        _history.pushState({ pathname: '/test' });
         const unsubscribe = _history.addPopStateListener(listener);
 
         window.history.back();

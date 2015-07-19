@@ -88,16 +88,16 @@ export default class BrowserHistory extends History {
      * @param {Object} resolvedRoute
      */
     pushState(resolvedRoute = {}) {
-        const { name, vars, query, path } = resolvedRoute;
+        const { name, vars, query, pathname } = resolvedRoute;
 
         this._currentState = resolvedRoute;
 
         const queryString = stringifyQuery(resolvedRoute.query) || '';
 
         window.history.pushState(
-            { name, vars, query, path},
+            { name, vars, query, pathname },
             '',
-            path + (queryString ? `?${queryString}` : '')
+            pathname + (queryString ? `?${queryString}` : '')
         );
     }
 
@@ -107,15 +107,15 @@ export default class BrowserHistory extends History {
      * @param {Object} resolvedRoute
      */
     replaceState(resolvedRoute = {}) {
-        const { name, vars, path, query } = resolvedRoute;
+        const { name, vars, pathname, query } = resolvedRoute;
 
         this._currentState = resolvedRoute;
         const queryString = stringifyQuery(resolvedRoute.query) || '';
 
         window.history.replaceState(
-            { name, vars, path, query },
+            { name, vars, pathname, query },
             '',
-            path + (queryString ? `?${queryString}` : '')
+            pathname + (queryString ? `?${queryString}` : '')
         );
     }
 
