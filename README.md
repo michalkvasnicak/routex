@@ -24,7 +24,6 @@ const routes = [
         path: '/',
         children: [
             {
-                name: 'about',
                 path: 'about',
                 children: [/* ... */]
             }
@@ -74,7 +73,8 @@ const routes = [
         children: [
             {
                 path: 'about',
-                children: function() { return Promise.resolve([{ path: '/', component: Child }]); }
+                component: () => Promise.resolve(About),
+                children: () => Promise.resolve([{ path: '/', component: Child }])
             }
         ]
     }/* ... */
@@ -127,7 +127,9 @@ Available histories:
         - `/path:variable`
         - `/path/:variable`
         - `/path/:variable{\\d+}` - variable should be number
-    - `component: ReactElement (optional)` - this is required only for <View /> / React
+    - `component: ReactElement (optional)|Function:Promise` 
+        - this is required only for <View /> / React
+        - can be async, have to be a function returning a Promise
     - `children: array of routeObject (optional) or function returning Promise (which resolves to array)`
     - `onEnter: function (optional)` 
         - function used to determine if router can transition to this route (can be used as guard, or to load data needed for view to store)

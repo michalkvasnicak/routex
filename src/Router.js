@@ -123,11 +123,42 @@ export default class Router {
             const rejectTransition = (reason) => {
                 const err = Error(reason);
 
-                return () => {
-                    this._callEventListeners('changeFail', err, this._currentRoute, this);
-                    this.onTransition(err);
-                    reject(err);
+                return (parentErr) => {
+                    const e = parentErr || err;
+                    this._callEventListeners('changeFail', e, this._currentRoute, this);
+                    this.onTransition(e);
+                    reject(e);
                 };
+            };
+
+            const resolveComponents = (components) => {
+                const isArray = Array.isArray(components);
+
+                if (!isArray || (isArray && !components.length)) {
+                    return Promise.resolve([]);
+                }
+
+                // go through components and if function, call it
+                return Promise.all(
+                    components.map((component) => {
+                        if (typeof component === 'function') {
+                            try {
+                                // if is react class, it throws error
+                                const result = component();
+
+                                if (typeof result.then === 'function') {
+                                    return result;
+                                }
+
+                                return component;
+                            } catch (e) {
+                                return component;
+                            }
+                        }
+
+                        return component;
+                    })
+                );
             };
 
             const finishRun = (resolvedRoute) => {
@@ -151,10 +182,10 @@ export default class Router {
                 // todo call transition hooks in order?
                 runRouteHandlers('onLeave', this._currentRoute, resolvedRoute, this).then(
                     () => runRouteHandlers('onEnter', resolvedRoute, this._currentRoute, resolvedRoute, this).then(
-                        () => {
-                            // todo async resolve components if are functions
-                            finishRun(resolvedRoute);
-                        },
+                        () => resolveComponents(resolvedRoute.components).then(
+                            (components) => finishRun({ ...resolvedRoute, components }),
+                            rejectTransition('Route components cannot be resolved')
+                        ),
                         rejectTransition('Route onEnter handlers are rejected.')
                     ),
                     rejectTransition('Current route onLeave handlers are rejected.')

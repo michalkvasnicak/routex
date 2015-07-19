@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { spy, stub } from 'sinon';
+import { Component } from 'react';
 import Router from '../src/Router';
 import MemoryHistory from '../src/MemoryHistory';
 import { RouteNotFoundError } from '../src/errors';
@@ -65,6 +66,53 @@ describe('Router', () => {
                     expect(resolvedRoute).to.be.an('object');
                     expect(resolvedRoute).to.have.property('pathname').and.be.equal('/test');
                     expect(resolvedRoute).to.have.property('components').and.be.deep.equal(['a', 'b']);
+                    expect(resolvedRoute).to.have.property('vars').and.be.deep.equal({});
+                    expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
+                    expect(router.currentRoute()).to.be.an('object');
+                    expect(history.replaceState.calledOnce).to.be.equal(true);
+                    expect(changeStart.calledOnce).to.be.equal(true);
+                    expect(changeSuccess.calledOnce).to.be.equal(true);
+                    expect(onTransition.calledOnce).to.be.equal(true);
+                }
+            );
+        });
+
+        it('resolves route components asynchronously', () => {
+            const onTransition = spy();
+            let history;
+
+            class App extends Component {}
+
+            const router = new Router(
+                [
+                    {
+                        path: '/',
+                        component: App,
+                        children: () => Promise.resolve([
+                            {
+                                path: 'test',
+                                component: () => Promise.resolve(App)
+                            }
+                        ])
+                    }
+                ],
+                history = new MemoryHistory(),
+                onTransition
+            );
+
+            stub(history);
+
+            const changeStart = spy();
+            const changeSuccess = spy();
+
+            router.addChangeStartListener(changeStart);
+            router.addChangeSuccessListener(changeSuccess);
+
+            return router.run('/test').then(
+                (resolvedRoute) => {
+                    expect(resolvedRoute).to.be.an('object');
+                    expect(resolvedRoute).to.have.property('pathname').and.be.equal('/test');
+                    expect(resolvedRoute).to.have.property('components').and.be.deep.equal([App, App]);
                     expect(resolvedRoute).to.have.property('vars').and.be.deep.equal({});
                     expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
                     expect(router.currentRoute()).to.be.an('object');
@@ -288,9 +336,5 @@ describe('Router', () => {
                 }
             );
         });
-    });
-
-    describe('#transitionTo()', () => {
-
     });
 });
