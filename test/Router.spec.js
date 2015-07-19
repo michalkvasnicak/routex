@@ -337,4 +337,72 @@ describe('Router', () => {
             );
         });
     });
+
+    describe('route handler wrappers', () => {
+        let router;
+        let onAEnterSpy;
+        let onBLeaveSpy;
+
+        beforeEach(() => {
+            router = new Router([
+                { path: '/', component: 'A', onEnter: onAEnterSpy = spy() },
+                { path: '/test', component: 'B', onLeave: onBLeaveSpy = spy() }
+            ], new MemoryHistory());
+        });
+
+        describe('#wrapOnEnterHandler', () => {
+            it('wraps route onEnter handler with provided function', () => {
+                const onEnterSpy = spy((onEnter) => {
+                    return onEnter('a', 'b', 'c');
+                });
+
+                router.wrapOnEnterHandler(onEnterSpy);
+
+                return router.run('/', {}).then(
+                    () => {
+                        expect(onEnterSpy.calledOnce).to.be.equal(true);
+                        expect(onAEnterSpy.calledOnce).to.be.equal(true);
+
+                        const call = onAEnterSpy.getCall(0);
+                        const [previous, current, _router, ...rest] = call.args;
+
+                        expect(call.args).to.have.length(6);
+                        expect(previous).to.be.equal(null); // previous route
+                        expect(current).to.be.an('object').with.property('pathname').equal('/'); // current route
+                        expect(_router).to.be.equal(router);
+                        expect(rest).to.be.eql(['a', 'b', 'c']);
+                    }
+                );
+            });
+        });
+
+        describe('#wrapOnLeaveHandler', () => {
+            it('wraps route onEnter handler with provided function', () => {
+                const onLeaveSpy = spy((onLeave) => {
+                    return onLeave('a', 'b', 'c');
+                });
+
+                router.wrapOnLeaveHandler(onLeaveSpy);
+
+                return router.run('/test', {}).then(
+                    () => {
+                        return router.run('/', {}).then(
+                            () => {
+                                expect(onLeaveSpy.calledOnce).to.be.equal(true);
+                                expect(onBLeaveSpy.calledOnce).to.be.equal(true);
+
+                                const call = onBLeaveSpy.getCall(0);
+                                const [resolved, _router, ...rest] = call.args;
+
+                                expect(call.args).to.have.length(5);
+                                expect(resolved).to.be.an('object').with.property('pathname').equal('/'); // current route
+                                expect(_router).to.be.equal(router);
+                                expect(rest).to.be.eql(['a', 'b', 'c']);
+                            }
+                        );
+                    }
+                );
+            });
+        });
+    });
 });

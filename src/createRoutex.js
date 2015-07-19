@@ -30,6 +30,21 @@ export default function createRoutex(routes, history, onTransition) {
         const router = new Router(routes, history, onTransition);
         const nextStore = next(reducer, modifiedInitialState);
 
+        /**
+         * Dispatch function of this store
+         *
+         * @param {*} action
+         * @returns {*}
+         */
+        function dispatch(action) {
+            if (typeof action !== 'object' || !action.hasOwnProperty('type') || action.type !== TRANSITION_TO) {
+                return nextStore.dispatch(action);
+            }
+
+            router.run(action.pathname, action.query);
+        }
+
+        // register listeners
         router.addChangeStartListener((currentRoute, resolvedRoute/*, router*/) => {
             nextStore.dispatch(changeStart(currentRoute, resolvedRoute));
         });
@@ -46,22 +61,17 @@ export default function createRoutex(routes, history, onTransition) {
             nextStore.dispatch(notFound(path, query));
         });
 
+        // wrap handlers
+        router.wrapOnEnterHandler((onEnter) => {
+            return onEnter(dispatch, nextStore.getState);
+        });
+
+        router.wrapOnLeaveHandler((onLeave) => {
+            return onLeave(dispatch, nextStore.getState);
+        });
+
         // initial run of router
         router.run(history.pathname(), history.query());
-
-        /**
-         * Dispatch function of this store
-         *
-         * @param {*} action
-         * @returns {*}
-         */
-        function dispatch(action) {
-            if (typeof action !== 'object' || !action.hasOwnProperty('type') || action.type !== TRANSITION_TO) {
-                return nextStore.dispatch(action);
-            }
-
-            router.run(action.pathname, action.query);
-        }
 
         return {
             ...nextStore,

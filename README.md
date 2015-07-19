@@ -105,6 +105,23 @@ Available histories:
 
 ### API
 
+- `Router`:
+    - `constructor(routes: array, history: History, onTransition(error, resolvedRoute):Function)`
+    - `wrapOnEnterHandler(wrapper:Function)`:
+        - wraps route onEnter handler with function
+        - it will be called with original handler bound to default arguments (see routeObject) as a first argument
+        - wrapper signature: `function(originalHandler): result from original handler`
+    - `wrapOnLeaveHandler(wrapper:Function)`:
+        - wraps route onLeave handler with function
+        - it will be called with original handler bound to default arguments (see routeObject) as a first argument
+        - wrapper signature: `function(originalHandler): result from original handler`
+    - `currentRoute():null|routeObject`
+    - `addChangeStartListener(listener:Function):Function` - returns unsubscribe function
+    - `addChangeSuccessListener(listener:Function):Function` - returns unsubscribe function
+    - `addChangeFailListener(listener:Function):Function` - returns unsubscribe function
+    - `addNotFoundListener(listener:Function):Function` - returns unsubscribe function
+    - `run(path: string, query: object):Promise`
+
 - `createRoutex(routes: array, history: History, onTransition(error, resolvedRoute): Function):{{ store: Function, reducer: { router: Function } }}`
     - `routes`: array of routeObject (see below)
     - `history` instance of History subclass
