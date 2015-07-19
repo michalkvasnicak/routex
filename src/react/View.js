@@ -11,8 +11,7 @@ export default function createView(React, connect) {
         static propTypes = {
             state: PropTypes.oneOf(['INITIAL', 'TRANSITIONING', 'TRANSITIONED']).isRequired,
             route: PropTypes.shape({
-                name: PropTypes.string.isRequired,
-                path: PropTypes.string.isRequired,
+                pathname: PropTypes.string.isRequired,
                 query: PropTypes.object.isRequired,
                 vars: PropTypes.object.isRequired,
                 components: PropTypes.array.isRequired

@@ -21,11 +21,9 @@ import { compose, createStore, combineReducers } from 'redux';
 
 const routes = [
     {
-        name: 'index',
         path: '/',
         children: [
             {
-                name: 'about',
                 path: 'about',
                 children: [/* ... */]
             }
@@ -36,7 +34,7 @@ const routes = [
 // this will return object with high order store and reducer
 const routex = createRoutex(routes, new BrowserHistory(), () => console.log('Transition finished') );
 
-const newCreateStore = compose(routex.store(), createStore);
+const newCreateStore = compose(routex.store, createStore);
 const routexReducer = routex.reducer;
 const reducers = combineReducers({ ...routexReducer /* your reducers */ });
 
@@ -70,14 +68,13 @@ class App extends Component {
 
 const routes = [
     {
-        name: 'index',
         path: '/',
         component: App, // you need components in all routes because <View /> needs to render them
         children: [
             {
-                name: 'about',
                 path: 'about',
-                children: [/* ... */]
+                component: () => Promise.resolve(About),
+                children: () => Promise.resolve([{ path: '/', component: Child }])
             }
         ]
     }/* ... */
@@ -113,50 +110,47 @@ Available histories:
     - `history` instance of History subclass
     - `onTransition: function` called everytime routex resolves/rejects route
     - returns
-        - `store: Function` 
-            - function which creates routex high order store
-            - adds `generateLink(route: string, params: Object):generateLinkObject` to store interface
+        - `store: Function` - high order store function
         - `reducer: { router: Function }`
         -   - object used in combineReducers  
 - `<View /> component`: use it where you want to render routes (needs `store` in context)
-- `<Link route="name" params={{}} /> component`: use it where you want `<a>` to route (needs `store` in context)
-    - `route: string` - name of route (have to be defined in routes)
-    - `params: object` - route params (what is not as route variable, will be added to query string)
+- `<Link to="path" query={{}} /> component`: use it where you want `<a>` to route (needs `store` in context)
+    - `to: string` - path
+    - `query: object` - query string params
 - `actions.transitionTo(path: string, query: object)`
     - creates action which will routex try to transition to
     - `path: string` - path without query string
     - `query: Object.<string, *>` - query string parameters
 
-- `generateLinkObject: object`:
-    - `path: string`: path part of href
-    - `query: Object.<string, *>`: query params of link
-    - `href: string`: path + stringified query that can be used in `<a href=>`
-
 - `routeObject: object`:
-    - `name: string (required)` - unique route name
     - `path: string (required)` - route path (regexp will be created from it)
         - `/path:variable`
         - `/path/:variable`
         - `/path/:variable{\\d+}` - variable should be number
-    - `component: ReactElement (optional)` - this is required only for <View /> / React
-    - `children: array of routeObject (optional)`
+    - `component: ReactElement (optional)|Function:Promise` 
+        - this is required only for <View /> / React
+        - can be async, have to be a function returning a Promise
+    - `children: array of routeObject (optional) or function returning Promise (which resolves to array)`
     - `onEnter: function (optional)` 
         - function used to determine if router can transition to this route (can be used as guard, or to load data needed for view to store)
         - **this function is called only on `transitionTo action` and not on popState event**
-        - function signature is `function (currentRoute, nextRoute, dispatch, getState():Promise`
+        - function signature is `function (currentRoute, nextRoute, router):Promise`
             - `currentRoute: routeObject|null` - current state of routex
             - `nextRoute: routeObject` - route we are transitioning to
-            - `dispatch: Function` - redux dispatch function
-            - `getState: Function` - redux getState function
+            - `router: Router` - instance of router
             - **returns Promise**
                 - if promise is resolved, transition will finish and changes the state of the router reducer
                 - if promise is rejected, transition will finish but it won't change the state of the router reducer
     - `onLeave: function (optional)`
+        - signature is same as in the onEnter
         - function used to determine if router can transition from this route (can be used as guard, ...) to a new route
         - **this function is called only on `transitionTo action` and not on popState event**
 
 
 ## TODO
 
+- more tests
+- how to pass store or just dispatch / getState to onEnter/onLeave
+- how to cancel transitions in components (like in react-router)
 - document lifecycle
 - HashHistory

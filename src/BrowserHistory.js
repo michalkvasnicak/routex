@@ -49,7 +49,7 @@ export default class BrowserHistory extends History {
      *
      * @returns {string}
      */
-    path() {
+    pathname() {
         return window.location.pathname;
     }
 
