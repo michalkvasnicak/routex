@@ -132,9 +132,7 @@ export default class Router {
             };
 
             const resolveComponents = (components) => {
-                const isArray = Array.isArray(components);
-
-                if (!isArray || (isArray && !components.length)) {
+                if (!Array.isArray(components)) {
                     return Promise.resolve([]);
                 }
 
