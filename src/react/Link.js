@@ -1,4 +1,5 @@
 import { transitionTo } from '../actions';
+import qs from 'qs';
 
 export default function createLink(React) {
     const { Component, PropTypes } = React;
@@ -6,36 +7,36 @@ export default function createLink(React) {
     return class Link extends Component {
         static contextTypes = {
             store: PropTypes.shape({
-                dispatch: PropTypes.func.isRequired,
-                generateLink: PropTypes.func.isRequired
+                dispatch: PropTypes.func.isRequired
             }).isRequired
         };
 
         static propTypes = {
-            route: PropTypes.string.isRequired,
-            params: PropTypes.object
+            to: PropTypes.string.isRequired,
+            query: PropTypes.object
         };
 
-        handleClick(path, query, e) {
+        handleClick(e) {
             e.preventDefault();
 
             this.context.store.dispatch(
                 transitionTo(
-                    path,
-                    query
+                    this.props.to,
+                    this.props.query
                 )
             );
         }
 
         render() {
-            const props = this.props;
-            const link = this.context.store.generateLink(props.route, props.params);
+            const { to, query, ...props } = this.props;
+            const stringQuery = qs.stringify(query, { arrayFormat: 'brackets' });
+            const href = to + (stringQuery.length ? '?' + stringQuery : '');
 
             return (
                 <a
-                    href={link.href}
+                    href={href}
                     {...props}
-                    onClick={this.handleClick.bind(this, link.path, link.query)}>
+                    onClick={this.handleClick.bind(this)}>
                     {this.props.children}
                 </a>
             );

@@ -30,17 +30,18 @@ export function changeFail(currentRoute, error) {
     };
 }
 
-export function notFound(notFoundRoute) {
+export function notFound(path, query) {
     return {
         type: ROUTE_NOT_FOUND,
-        route: notFoundRoute
+        path,
+        query
     };
 }
 
 export function transitionTo(path, query = {}) {
     return {
         type: TRANSITION_TO,
-        path: path,
+        pathname: path,
         query: query
     };
 }

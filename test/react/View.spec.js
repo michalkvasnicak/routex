@@ -13,9 +13,9 @@ describe('View', () => {
     // let utils, React, Provider, Component, View;
 
     function createRoutexStore(routes, initialState, onTransition) {
-        const routex = createRoutex(routes, new MemoryHistory(), onTransition);
+        const routex = createRoutex(routes, new MemoryHistory('/', {}), onTransition);
 
-        return compose(routex.store(), createStore)(combineReducers(routex.reducer), initialState);
+        return compose(routex.store, createStore)(combineReducers(routex.reducer), initialState);
     }
 
     jsdom({ url: 'http://localhost/' });
@@ -34,24 +34,26 @@ describe('View', () => {
             }
         }
 
-        const store = createRoutexStore([
-            {
-                path: '/',
-                name: 'index',
-                component: App
-            }
-        ]);
+        const store = createRoutexStore(
+            [
+                {
+                    path: '/',
+                    component: App
+                }
+            ],
+            undefined,
+            (err) => {
+                if (err) done(err);
 
-        setTimeout(() => {
-            const tree = utils.renderIntoDocument(
-                <Provider store={store}>
-                    {() => <View />}
-                </Provider>
-            );
+                const tree = utils.renderIntoDocument(
+                    <Provider store={store}>
+                        {() => <View />}
+                    </Provider>
+                );
 
-            utils.findRenderedComponentWithType(tree, App);
-            done();
-        }, 0);
+                utils.findRenderedComponentWithType(tree, App);
+                done();
+            });
     });
 
     it('renders matched route on initial load (rehydrated)', (done) => {
@@ -65,25 +67,25 @@ describe('View', () => {
             [
                 {
                     path: '/',
-                    name: 'index',
                     component: App
                 }
             ],
             {
-                router: { state: 'TRANSITIONED', route: { name: 'index', path: '/', query: {}, vars: {} }}
+                router: { state: 'TRANSITIONED', route: { pathname: '/', query: {}, vars: {} }}
+            },
+            (err) => {
+                if (err) done(err);
+
+                const tree = utils.renderIntoDocument(
+                    <Provider store={store}>
+                        {() => <View />}
+                    </Provider>
+                );
+
+                utils.findRenderedComponentWithType(tree, App);
+                done();
             }
         );
-
-        setTimeout(() => {
-            const tree = utils.renderIntoDocument(
-                <Provider store={store}>
-                    {() => <View />}
-                </Provider>
-            );
-
-            utils.findRenderedComponentWithType(tree, App);
-            done();
-        }, 0);
     });
 
     it('renders route components on successful transition', (done) => {
@@ -103,19 +105,17 @@ describe('View', () => {
             [
                 {
                     path: '/',
-                    name: 'index',
                     component: App,
                     children: [
                         {
                             path: '/child',
-                            name: 'child',
                             component: Child
                         }
                     ]
                 }
             ],
             {
-                router: { state: 'TRANSITIONED', route: { name: 'index', path: '/', query: {}, vars: {} }}
+                router: { state: 'TRANSITIONED', route: { pathname: '/', query: {}, vars: {} }}
             }
         );
 
@@ -131,7 +131,7 @@ describe('View', () => {
 
             setTimeout(
                 () => {
-                    expect(store.getState().router.route.name).to.be.equal('child');
+                    expect(store.getState().router.route.pathname).to.be.equal('/child');
                     utils.findRenderedComponentWithType(tree, App);
                     utils.findRenderedComponentWithType(tree, Child);
 

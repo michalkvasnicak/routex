@@ -25,7 +25,7 @@ export default class MemoryHistory extends History {
      *
      * @returns {string}
      */
-    path() {
+    pathname() {
         return this._path;
     }
 
