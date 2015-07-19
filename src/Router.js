@@ -42,6 +42,15 @@ export default class Router {
             notFound: []
         };
 
+        this.handlerWrappers = {
+            onEnter(onEnter) {
+                return onEnter();
+            },
+            onLeave(onLeave) {
+                return onLeave();
+            }
+        };
+
         this._currentRoute = null;
 
         // listen to popState event
@@ -67,6 +76,15 @@ export default class Router {
 
     currentRoute() {
         return this._currentRoute;
+    }
+
+    _wrapRouteHandler(name, wrapper) {
+        invariant(
+            typeof wrapper === 'function',
+            `${name} handler wrapper should be a function, ${typeof wrapper} given.`
+        );
+
+        this.handlerWrappers[name] = wrapper;
     }
 
     _callEventListeners(name, ...args) {
@@ -105,8 +123,34 @@ export default class Router {
         return this._registerEventListener('notFound', listener);
     }
 
+    /**
+     * Wraps route onEnter handler
+     *
+     * @param {Function} handler
+     */
+    wrapOnEnterHandler(handler) {
+        this._wrapRouteHandler('onEnter', handler);
+    }
+
+    /**
+     * Wraps route onLeave handler
+     *
+     * @param {Function} handler
+     */
+    wrapOnLeaveHandler(handler) {
+        this._wrapRouteHandler('onLeave', handler);
+    }
+
     run(path, query = {}) {
         return new Promise((resolve, reject) => {
+            // runs route handler bound to given arguments (from our code)
+            // wrapper can call it with additional parameters
+            const runWrappedHandler = (originalHandler, originalProps, wrapper) => {
+                return wrapper(
+                    originalHandler.bind(this, ...originalProps)
+                );
+            };
+
             const runRouteHandlers = (handlers, route, ...args) => {
                 return new Promise((_resolve, _reject) => {
                     // resolve if current route is not defined (initial load for onLeave?)
@@ -115,7 +159,9 @@ export default class Router {
                     }
 
                     return Promise.all(
-                        route[handlers].map((handler) => handler(...args))
+                        route[handlers].map(
+                            (handler) => runWrappedHandler(handler, args, this.handlerWrappers[handlers])
+                        )
                     ).then(_resolve, _reject);
                 });
             };
