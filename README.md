@@ -168,7 +168,6 @@ Available histories:
 ## TODO
 
 - more tests
-- how to pass store or just dispatch / getState to onEnter/onLeave
 - how to cancel transitions in components (like in react-router)
 - document lifecycle
 - HashHistory
