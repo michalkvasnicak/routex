@@ -1,8 +1,9 @@
 import Route from './Route';
 import { normalizeRouteDefinition } from './utils/routeUtils';
 import { resolveWithFirstMatched } from './utils/routerUtils';
+import { Actions } from 'history';
 import invariant from 'invariant';
-import History from './History';
+import qs from 'qs';
 import { RouteNotFoundError } from './errors';
 
 function instantiateRoutes(routes) {
@@ -21,9 +22,13 @@ function instantiateRoutes(routes) {
 }
 
 export default class Router {
-    constructor(routes = [], history, onTransition = function transitionFinished() {}) {
+    constructor(
+        routes = [],
+        history,
+        onTransition = function transitionFinished() {}
+    ) {
         invariant(Array.isArray(routes), `Routes should be an array, ${typeof routes} given.`);
-        invariant(history instanceof History, 'Router history should be a subclass of History.');
+        invariant(typeof history === 'object', `Router history should be an object, ${typeof history} given.`);
         invariant(
             typeof onTransition === 'function',
             `Router onTransition callback should be a function, ${typeof onTransition} given.`
@@ -42,6 +47,8 @@ export default class Router {
             notFound: []
         };
 
+        this.location = null;
+
         this.handlerWrappers = {
             onEnter(onEnter) {
                 return onEnter();
@@ -52,26 +59,36 @@ export default class Router {
         };
 
         this._currentRoute = null;
-
-        // listen to popState event
-        this.history.addPopStateListener(this._handlePopState.bind(this));
     }
 
-    _handlePopState(resolvedRoute) {
-        // on handle pop state (we are moving in history)
-        // just match route and call change success because we are assuming that everything has been already resolved
-        // so just change route
+    listen() {
+        // listen to popState event
+        this.history.listen(this._handleChange.bind(this));
+    }
 
-        resolveWithFirstMatched(this.routes, resolvedRoute.pathname, resolvedRoute.query).then(
-            (newRoute) => {
-                this._currentRoute = newRoute;
-                this._callEventListeners('changeSuccess', newRoute);
+    _handleChange(location) {
+        this.location = location;
 
-                // do nothing about state because it is already store
+        if (location.action === Actions.POP) {
+            // on handle pop state (we are moving in history)
+            // just match route and call change success because we are assuming that everything has been already resolved
+            // so just change route
 
-                this.onTransition(null, newRoute);
-            }
-        );
+            resolveWithFirstMatched(this.routes, location.pathname, qs.parse(location.search.replace(/^\?/, ''))).then(
+                (newRoute) => {
+                    this._currentRoute = newRoute;
+                    this._callEventListeners('changeSuccess', newRoute);
+
+                    // replace state with new route if is not set (initial load)
+                    if (!location.state) {
+                        this.history.replaceState(newRoute, location.pathname + location.search);
+                    }
+
+                    // do nothing about state because it is already store
+                    this.onTransition(null, newRoute);
+                }
+            );
+        }
     }
 
     currentRoute() {
@@ -209,11 +226,9 @@ export default class Router {
                 this._currentRoute = resolvedRoute;
                 this._callEventListeners('changeSuccess', resolvedRoute);
 
-                if (this.history.state()) {
-                    this.history.pushState(resolvedRoute);
-                } else {
-                    this.history.replaceState(resolvedRoute);
-                }
+                const stringifiedQuery = qs.stringify(query, { arrayBrackets: true });
+
+                this.history.pushState(resolvedRoute, path + (stringifiedQuery ? '?' + stringifiedQuery : ''));
 
                 this.onTransition(null, resolvedRoute);
                 resolve(resolvedRoute);
