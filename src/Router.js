@@ -243,7 +243,7 @@ export default class Router {
                 reject(err);
             };
 
-            resolveWithFirstMatched(this.routes, path, query).then(
+            return resolveWithFirstMatched(this.routes, path, query).then(
                 runResolvedRoute,
                 notFound
             );

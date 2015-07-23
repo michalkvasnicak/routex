@@ -41,7 +41,7 @@ export default function createRoutex(routes, history, onTransition) {
                 return nextStore.dispatch(action);
             }
 
-            router.run(action.pathname, action.query);
+            return router.run(action.pathname, action.query);
         }
 
         // register listeners
