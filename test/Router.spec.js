@@ -336,6 +336,48 @@ describe('Router', () => {
                 }
             );
         });
+
+        it('calls onEnter on route with current route and resolving route', () => {
+            const onTransition = spy();
+
+            const router = new Router(
+                [
+                    {
+                        path: '/',
+                        component: 'a',
+                        children: [{ path: '/nested', component: 'b' }]
+                    }
+                ],
+                new MemoryHistory(),
+                onTransition
+            );
+
+            const changeStart = spy();
+
+            router.addChangeStartListener(changeStart);
+
+            expect(router.currentRoute()).to.be.equal(null);
+
+            return router.run('/').then(
+                (resolvedRoute) => {
+                    expect(changeStart.calledOnce).to.be.equal(true);
+                    expect(router.currentRoute()).not.to.be.equal(null);
+                    expect(resolvedRoute).to.be.equal(router.currentRoute());
+                    const previousRoute = router.currentRoute();
+
+                    return router.run('/nested').then(
+                        (newRoute) => {
+                            expect(changeStart.calledTwice).to.be.equal(true);
+                            expect(router.currentRoute()).not.to.be.equal(previousRoute);
+                            expect(newRoute).not.to.be.equal(previousRoute);
+                            expect(router.currentRoute()).to.be.equal(newRoute);
+                            expect(changeStart.getCall(1).args[0]).to.be.deep.equal(previousRoute);
+                            expect(changeStart.getCall(1).args[1]).to.be.deep.equal(newRoute);
+                        }
+                    );
+                }
+            );
+        });
     });
 
     describe('route handler wrappers', () => {
