@@ -17,6 +17,7 @@ import {
 
 export default function createRoutex(routes, history, onTransition) {
     const initialReducerState = { state: 'INITIAL', route: null };
+    const router = new Router(routes, history, onTransition);
 
     const store = (next) => (reducer, initialState) => {
         const modifiedInitialState = initialState;
@@ -27,7 +28,6 @@ export default function createRoutex(routes, history, onTransition) {
             modifiedInitialState.router = initialReducerState;
         }
 
-        const router = new Router(routes, history, onTransition);
         const nextStore = next(reducer, modifiedInitialState);
 
         /**
@@ -75,7 +75,8 @@ export default function createRoutex(routes, history, onTransition) {
 
         return {
             ...nextStore,
-            dispatch
+            dispatch,
+            router
         };
     };
 
@@ -84,7 +85,7 @@ export default function createRoutex(routes, history, onTransition) {
             case ROUTE_CHANGE_START:
                 return {
                     state: 'TRANSITIONING',
-                    nextRoute: action.route,
+                    nextRoute: action.nextRoute,
                     route: state.route
                 };
             case ROUTE_CHANGE_SUCCESS:
@@ -111,6 +112,7 @@ export default function createRoutex(routes, history, onTransition) {
     };
 
     return {
+        router,
         store,
         reducer: { router: reducer }
     };
