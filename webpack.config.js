@@ -29,7 +29,7 @@ module.exports = {
         }]
     },
     output: {
-        library: 'routex',
+        library: !!process.env.MODULE_NAME ? process.env.MODULE_NAME : 'routex',
         libraryTarget: 'umd'
     },
     plugins: plugins,

@@ -1,6 +1,6 @@
 {
   "name": "routex",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Simple router for Redux universal applications. Can be used with React too.",
   "main": "lib/index.js",
   "license": "MIT",
@@ -22,7 +22,7 @@
     "build": "babel src --out-dir lib",
     "build:umd": "npm run build:umd:routex && npm run build:umd:react",
     "build:umd:routex": "webpack src/index.js dist/routex.js && NODE_ENV=production webpack src/index.js dist/routex.min.js",
-    "build:umd:react": "webpack src/react/index.js dist/react-routex.js && NODE_ENV=production webpack src/react/index.js dist/react-routex.min.js",
+    "build:umd:react": "MODULE_NAME=react-routex webpack src/react/index.js dist/react-routex.js && NODE_ENV=production MODULE_NAME=react-routex webpack src/react/index.js dist/react-routex.min.js",
     "lint": "eslint -c .eslintrc src test",
     "test": "NODE_ENV=test mocha",
     "test:watch": "NODE_ENV=test --watch",
