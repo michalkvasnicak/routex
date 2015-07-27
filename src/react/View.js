@@ -1,7 +1,6 @@
 export default function createView(React, connect) {
     const { Component, PropTypes, isValidElement } = React;
 
-    @connect((state) => state.router)
     class View extends Component {
 
         static contextTypes = {
@@ -37,6 +36,6 @@ export default function createView(React, connect) {
         }
     }
 
-    return View;
+    return connect((state) => state.router)(View);
 }
 
