@@ -34,7 +34,7 @@
     "qs": "^4.0.0"
   },
   "dependencies": {
-    "history": "git://github.com/michalkvasnicak/history.git#a4e01cf04ecb1983b2317b76cd2a87f6886b55b6",
+    "history": "^1.0.0",
     "invariant": "^2.1.0"
   },
   "devDependencies": {
