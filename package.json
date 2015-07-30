@@ -22,10 +22,10 @@
     "build": "babel src --out-dir lib",
     "build:umd": "npm run build:umd:routex && npm run build:umd:react",
     "build:umd:routex": "webpack src/index.js dist/routex.js && NODE_ENV=production webpack src/index.js dist/routex.min.js",
-    "build:umd:react": "MODULE_NAME=react-routex webpack src/react/index.js dist/react-routex.js && NODE_ENV=production MODULE_NAME=react-routex webpack src/react/index.js dist/react-routex.min.js",
+    "build:umd:react": "MODULENAME=react-routex webpack src/react/index.js dist/react-routex.js && NODE_ENV=production MODULE_NAME=react-routex webpack src/react/index.js dist/react-routex.min.js",
     "lint": "eslint -c .eslintrc src test",
-    "test": "NODE_ENV=test mocha",
-    "test:watch": "NODE_ENV=test --watch",
+    "test": "NODE_ENV=test prever -v 'test/**/*.spec.js'",
+    "test:browser:watch": "NODE_ENV=test prever -e browser -w",
     "prepublish": "npm run lint && npm run test && npm run clean && npm run build && npm run build:umd"
   },
   "peerDependencies": {
@@ -46,16 +46,13 @@
     "eslint-plugin-react": "^2.3.0",
     "chai": "^3.0.0",
     "chai-as-promised": "5.1.0",
-    "jsdom": "^5.0.0",
-    "mocha": "^2.2.5",
-    "mocha-jsdom": "^1.0.0",
+    "prever": "^0.2.0",
     "qs": "^4.0.0",
     "redux": "^1.0.0-rc",
     "react": "^0.13.3",
     "react-redux": "^0.2.2",
     "rimraf": "^2.3.4",
-    "sinon": "^1.15.4",
-    "sinon-chai": "^2.8.0",
+    "sinon": "git://github.com/cjohansen/Sinon.JS#sinon-2.0",
     "webpack": "^1.10.1"
   }
 }
