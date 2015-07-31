@@ -2,7 +2,7 @@ import { createStore, combineReducers, compose } from 'redux';
 import createRoutex from '../src/createRoutex';
 import { createMemoryHistory } from 'history';
 import * as actions from '../src/actions';
-import { spy, stub } from 'sinon';
+import { spy } from 'sinon';
 import { expect } from 'chai';
 
 const transitionTo = actions.transitionTo;

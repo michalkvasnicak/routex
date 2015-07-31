@@ -79,7 +79,7 @@ test(
             (err, resolvedRoute) => {
                 try {
                     expect(err).not.to.be.equal(null);
-                    expect(resolvedRoute).to.be.undefined;
+                    expect(resolvedRoute).to.be.equal(undefined);
 
                     expect(history.replaceState.called).to.be.equal(false);
 
