@@ -71,7 +71,10 @@ export default function createRoutex(routes, history, onTransition) {
         });
 
         // initial run of router
-        router.run(history.pathname(), history.query());
+        // this is not needed because history.listen will be called with location
+        // so pop state event will be handled
+        // router.run(history.pathname(), history.query());
+        router.listen(); // register popState listener
 
         return {
             ...nextStore,

@@ -1,8 +1,8 @@
 import { createStore, combineReducers, compose } from 'redux';
 import createRoutex from '../src/createRoutex';
-import MemoryHistory from '../src/MemoryHistory';
+import { createMemoryHistory } from 'history';
 import * as actions from '../src/actions';
-import { spy, stub } from 'sinon';
+import { spy } from 'sinon';
 import { expect } from 'chai';
 
 const transitionTo = actions.transitionTo;
@@ -48,13 +48,11 @@ function stepper(steps, done) {
 
 test('routex - replaces state in history on initial load if router state is initial', (done) => {
     let store;
-    let history = new MemoryHistory('/', {});
-    spy(history, 'addPopStateListener');
+    let history = createMemoryHistory();
     spy(history, 'replaceState');
 
     let onTransition = spy(() => {
         expect(onTransition.called).to.be.equal(true);
-        expect(history.addPopStateListener.called).to.be.equal(true);
         expect(history.replaceState.called).to.be.equal(true);
         expect(store.getState().router.state).to.be.equal('TRANSITIONED');
         expect(stripRouteInfo(store.getState().router.route)).to.be.deep.equal({
@@ -71,13 +69,11 @@ test('routex - replaces state in history on initial load if router state is init
 
 test('routex - replaces state in history on initial load if current state is null (in browser after load)', (done) => {
     let store;
-    let history = new MemoryHistory('/', {});
-    spy(history, 'addPopStateListener');
+    let history = createMemoryHistory();
     spy(history, 'replaceState');
 
     let onTransition = spy(() => {
         expect(onTransition.called).to.be.equal(true);
-        expect(history.addPopStateListener.called).to.be.equal(true);
         expect(history.replaceState.called).to.be.equal(true);
         expect(store.getState().router.state).to.be.equal('TRANSITIONED');
         expect(stripRouteInfo(store.getState().router.route)).to.be.deep.equal({
@@ -105,11 +101,8 @@ test('routex - replaces state in history on initial load if current state is nul
 test('routex - pushes state to history on successful transition (from known state to another)', (done) => {
     let store;
     let _stepper;
-    let history = new MemoryHistory('/', {});
-    spy(history, 'pathname');
-    spy(history, 'query');
+    let history = createMemoryHistory();
     spy(history, 'pushState');
-    spy(history, 'addPopStateListener');
 
     const steps = [
         () => {
@@ -124,10 +117,7 @@ test('routex - pushes state to history on successful transition (from known stat
             store.dispatch(transitionTo('/child', {}));
         },
         () => {
-            expect(history.addPopStateListener.called).to.be.equal(true);
             expect(_stepper.calledTwice).to.be.equal(true);
-            expect(history.pathname.calledOnce).to.be.equal(true);
-            expect(history.query.calledOnce).to.be.equal(true);
             expect(history.pushState.called).to.be.equal(true);
             expect(stripRouteInfo(store.getState().router.route)).to.deep.equal({
                 pathname: '/child',
@@ -155,11 +145,9 @@ test('routex - pushes state to history on successful transition (from known stat
 });
 
 test('routex - changes state using change success action if pop state event is emitted', (done) => {
-    let listener;
     let store;
     let _stepper;
-    let history = new MemoryHistory('/', {});
-    stub(history, 'addPopStateListener', (_listener) => listener = _listener);
+    let history = createMemoryHistory();
 
     const childState = {
         pathname: '/child',
@@ -188,22 +176,14 @@ test('routex - changes state using change success action if pop state event is e
 
             // call on pop state with state from history and return back
             // this dispatches ROUTE_CHANGE_SUCCESS immediately
-            listener({
-                pathname: '/',
-                query: {},
-                vars: {}
-            });
+            history.goBack();
         },
         () => {
             expect(store.getState().router.state).to.be.equal('TRANSITIONED');
             expect(stripRouteInfo(store.getState().router.route)).to.deep.equal(indexState);
 
             // go forward
-            listener({
-                pathname: '/child',
-                query: {},
-                vars: {}
-            });
+            history.goForward();
         },
         () => {
             expect(store.getState().router.state).to.be.equal('TRANSITIONED');
@@ -255,7 +235,7 @@ test('routex - cancels transition if one of onEnter handlers rejects', (done) =>
 
     const _stepper = stepper(steps, done);
 
-    store = createRoutexStore(new MemoryHistory('/', {}), _stepper, {
+    store = createRoutexStore(createMemoryHistory(), _stepper, {
         router: {
             state: 'TRANSITIONED',
             route: {
@@ -295,7 +275,7 @@ test('routex - cancels transition if one of onLeave handlers rejects', (done) =>
 
     const _stepper = stepper(steps, done);
 
-    store = createRoutexStore(new MemoryHistory('/rejected-on-leave', {}), _stepper, {
+    store = createRoutexStore(createMemoryHistory(['/rejected-on-leave']), _stepper, {
         router: {
             state: 'TRANSITIONED',
             route: {

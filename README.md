@@ -10,14 +10,16 @@ Simple router for [Redux](https://github.com/gaearon/redux) universal applicatio
 
 `npm install routex`
 
+**Routex requires history^1.0.0 package to be installed**
 
 ## Usage
 
 ### Creating routex (without react)
 
 ```js
-import { createRoutex, BrowserHistory, actions } from 'routex';
+import { createRoutex, actions } from 'routex';
 import { compose, createStore, combineReducers } from 'redux';
+import { createBrowserHistory } from 'history';
 
 const routes = [
     {
@@ -32,7 +34,7 @@ const routes = [
 ];
 
 // this will return object with high order store and reducer
-const routex = createRoutex(routes, new BrowserHistory(), () => console.log('Transition finished') );
+const routex = createRoutex(routes, createBrowserHistory(), () => console.log('Transition finished') );
 
 const newCreateStore = compose(routex.store, createStore);
 const routexReducer = routex.reducer;
@@ -48,10 +50,11 @@ store.generateLink('about'); // generates link object (see api)
 ### Creating routex using in React app (React >= 0.13)
 
 ```js
-import { createRoutex, BrowserHistory } from 'routex';
+import { createRoutex } from 'routex';
 import { compose, createStore, combineReducers } from 'redux';
 import React, { Component } from 'react';
 import { View, Link } from 'routex/lib/react';
+import { createBrowserHistory } from 'history';
 
 class App extends Component {
     render() {
@@ -81,7 +84,7 @@ const routes = [
 ];
 
 // this will return object with high order store and reducer
-const routex = createRoutex(routes, new BrowserHistory(), () => console.log('Transition finished') );
+const routex = createRoutex(routes, createBrowserHistory(), () => console.log('Transition finished') );
 
 const newCreateStore = compose(routex.store(), createStore);
 const routexReducer = routex.reducer;
@@ -98,15 +101,27 @@ React.render(
 
 ```
 
-Available histories:
+### Use router as standalone (without redux / react)
 
-- BrowserHistory (HTML5)
-- MemoryHistory (stupid implementation mainly for server side when we don't need history at all)
+```js
+import { Router } from 'routex';
+import { createBrowserHistory } from 'history';
+
+const router = new Router([/* routes */], createBrowserHistory() /*, optional onTransition hook */);
+
+router.listen(); // start listening to pop state events (immediately will start transition for current location)
+
+// if you want to transition to another location you have to run this
+// if you won't then router will lose track of current location and will pretend
+// that location didn't change
+router.run('/where-you-want-to-go', { /* query params object */});
+```
 
 ### API
 
 - `Router`:
-    - `constructor(routes: array, history: History, onTransition(error, resolvedRoute):Function)`
+    - `constructor(routes: array, history: Object, onTransition(error, resolvedRoute):Function)`
+        - history is result of calling `createMemoryHistory(), createHashHistory() or createBrowserHistory()` from `history` 
     - `wrapOnEnterHandler(wrapper:Function)`:
         - wraps route onEnter handler with function
         - it will be called with original handler bound to default arguments (see routeObject) as a first argument
@@ -167,7 +182,4 @@ Available histories:
 
 ## TODO
 
-- more tests
-- how to cancel transitions in components (like in react-router)
 - document lifecycle
-- HashHistory
