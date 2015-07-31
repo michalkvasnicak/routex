@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { spy, stub } from 'sinon';
 import { Component } from 'react';
 import Router from '../src/Router';
-import MemoryHistory from '../src/MemoryHistory';
+import { createMemoryHistory } from 'history';
 import { RouteNotFoundError } from '../src/errors';
 
 test('Router.constructor() throws if routes are not an array', () => {
@@ -15,23 +15,96 @@ test('Router.constructor() throws if routes are not an array', () => {
     });
 });
 
-test('Router.constructor() throws if history does not implement History', () => {
-    expect(
-        () => new Router([], {})
-    ).to.throw(
-        'Invariant Violation: Router history should be a subclass of History.'
-    );
-});
-
 test('Router.constructor() throws if onTransition is not an function or undefined', () => {
     [1, true, 1.0, Date()].forEach((callback) => {
         expect(
-            () => new Router([], new MemoryHistory(), callback)
+            () => new Router([], createMemoryHistory(), callback)
         ).to.throw(
             `Invariant Violation: Router onTransition callback should be a function, ${typeof callback} given.`
         );
     });
 });
+
+test(
+    'Router.listen() starts listening to pop state events and replaces state on initial and replaces state if undefined',
+    (done) => {
+        const changeStart = spy();
+        const changeSuccess = spy();
+        let history = createMemoryHistory();
+
+        const router = new Router(
+            [{ path: '/', component: 'A' }],
+            history,
+            (err, resolvedRoute) => {
+                try {
+                    expect(err).to.be.equal(null);
+                    expect(resolvedRoute).to.be.an('object');
+                    expect(resolvedRoute.pathname).to.be.equal('/');
+                    expect(resolvedRoute.components).to.be.eql(['A']);
+
+                    expect(history.replaceState.calledOnce).to.be.equal(true);
+                    expect(history.replaceState.getCall(0).args[0]).to.be.equal(resolvedRoute);
+                    expect(history.replaceState.getCall(0).args[1]).to.be.equal('/');
+
+                    expect(changeStart.called).to.be.equal(false);
+                    expect(changeSuccess.calledOnce).to.be.equal(true);
+
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            }
+        );
+
+        spy(history, 'replaceState');
+
+        router.addChangeStartListener(changeStart);
+        router.addChangeSuccessListener(changeSuccess);
+
+        router.listen();
+    }
+);
+
+test(
+    'Router.listen() starts listening to pop state events and calls not found listeners if current location is not mapped to route',
+    (done) => {
+        const changeStart = spy();
+        const changeSuccess = spy();
+        const notFound = spy();
+        let history = createMemoryHistory([{ pathname: '/unknown', search: '?a=1&b=0' }]);
+
+        const router = new Router(
+            [{ path: '/', component: 'A' }],
+            history,
+            (err, resolvedRoute) => {
+                try {
+                    expect(err).not.to.be.equal(null);
+                    expect(resolvedRoute).to.be.undefined;
+
+                    expect(history.replaceState.called).to.be.equal(false);
+
+                    expect(changeStart.called).to.be.equal(false);
+                    expect(changeSuccess.called).to.be.equal(false);
+                    expect(notFound.calledOnce).to.be.equal(true);
+                    expect(notFound.getCall(0).args[0]).to.be.equal('/unknown');
+                    expect(notFound.getCall(0).args[1]).to.deep.equal({ a: '1', b: '0' });
+
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            }
+        );
+
+        spy(history, 'replaceState');
+
+        router.addChangeStartListener(changeStart);
+        router.addChangeSuccessListener(changeSuccess);
+        router.addNotFoundListener(notFound);
+
+        router.listen();
+    }
+);
 
 test('Router.run() resolves simple route with sync children and calls all callbacks', () => {
     const onTransition = spy();
@@ -45,11 +118,11 @@ test('Router.run() resolves simple route with sync children and calls all callba
                 children: () => Promise.resolve([{ path: 'test', component: 'b' }])
             }
         ],
-        history = new MemoryHistory(),
+        history = createMemoryHistory(),
         onTransition
     );
 
-    stub(history);
+    spy(history, 'pushState');
 
     const changeStart = spy();
     const changeSuccess = spy();
@@ -57,15 +130,17 @@ test('Router.run() resolves simple route with sync children and calls all callba
     router.addChangeStartListener(changeStart);
     router.addChangeSuccessListener(changeSuccess);
 
-    return router.run('/test').then(
+    return router.run('/test', { a: 1, b: 0 }).then(
         (resolvedRoute) => {
             expect(resolvedRoute).to.be.an('object');
             expect(resolvedRoute).to.have.property('pathname').and.be.equal('/test');
             expect(resolvedRoute).to.have.property('components').and.be.deep.equal(['a', 'b']);
             expect(resolvedRoute).to.have.property('vars').and.be.deep.equal({});
-            expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
+            expect(resolvedRoute).to.have.property('query').and.be.deep.equal({ a: 1, b: 0 });
             expect(router.currentRoute()).to.be.an('object');
-            expect(history.replaceState.calledOnce).to.be.equal(true);
+            expect(history.pushState.calledOnce).to.be.equal(true);
+            expect(history.pushState.getCall(0).args[0]).to.be.equal(resolvedRoute);
+            expect(history.pushState.getCall(0).args[1]).to.be.equal('/test?a=1&b=0');
             expect(changeStart.calledOnce).to.be.equal(true);
             expect(changeSuccess.calledOnce).to.be.equal(true);
             expect(onTransition.calledOnce).to.be.equal(true);
@@ -92,7 +167,7 @@ test('Router.run() resolves route components asynchronously', () => {
                 ])
             }
         ],
-        history = new MemoryHistory(),
+        history = createMemoryHistory(),
         onTransition
     );
 
@@ -112,7 +187,7 @@ test('Router.run() resolves route components asynchronously', () => {
             expect(resolvedRoute).to.have.property('vars').and.be.deep.equal({});
             expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
             expect(router.currentRoute()).to.be.an('object');
-            expect(history.replaceState.calledOnce).to.be.equal(true);
+            expect(history.pushState.calledOnce).to.be.equal(true);
             expect(changeStart.calledOnce).to.be.equal(true);
             expect(changeSuccess.calledOnce).to.be.equal(true);
             expect(onTransition.calledOnce).to.be.equal(true);
@@ -132,7 +207,7 @@ test('Router.run() resolves a route with variables and calls all callbacks', () 
                 children: () => Promise.resolve([{ path: 'test/:variable', component: 'b' }])
             }
         ],
-        history = new MemoryHistory(),
+        history = createMemoryHistory(),
         onTransition
     );
 
@@ -154,7 +229,7 @@ test('Router.run() resolves a route with variables and calls all callbacks', () 
             });
             expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
             expect(router.currentRoute()).to.be.an('object');
-            expect(history.replaceState.calledOnce).to.be.equal(true);
+            expect(history.pushState.calledOnce).to.be.equal(true);
             expect(changeStart.calledOnce).to.be.equal(true);
             expect(changeSuccess.calledOnce).to.be.equal(true);
             expect(onTransition.calledOnce).to.be.equal(true);
@@ -174,7 +249,7 @@ test('Router.run() rejects if route is not found and calls callbacks', () => {
                 children: () => Promise.resolve([{ path: 'test/:variable{\\d+}', component: 'b' }])
             }
         ],
-        history = new MemoryHistory(),
+        history = createMemoryHistory(),
         onTransition
     );
 
@@ -199,7 +274,7 @@ test('Router.run() rejects if route is not found and calls callbacks', () => {
     );
 });
 
-test('Router.run() resolves simple route and calls replaceState on initial and pushState on subsequent', () => {
+test('Router.run() resolves simple route and calls pushState on current and subsequent runs', () => {
     const onTransition = spy();
     let history;
 
@@ -214,15 +289,13 @@ test('Router.run() resolves simple route and calls replaceState on initial and p
                 ])
             }
         ],
-        history = new MemoryHistory(),
+        history = createMemoryHistory(),
         onTransition
     );
 
     const changeStart = spy();
     const changeSuccess = spy();
 
-    spy(history, 'state');
-    spy(history, 'replaceState');
     spy(history, 'pushState');
 
     router.addChangeStartListener(changeStart);
@@ -237,7 +310,7 @@ test('Router.run() resolves simple route and calls replaceState on initial and p
             expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
             expect(router.currentRoute()).to.be.equal(resolvedRoute);
 
-            expect(history.replaceState.calledOnce).to.be.equal(true);
+            expect(history.pushState.calledOnce).to.be.equal(true);
             expect(changeStart.calledOnce).to.be.equal(true);
             expect(changeSuccess.calledOnce).to.be.equal(true);
             expect(onTransition.calledOnce).to.be.equal(true);
@@ -251,8 +324,7 @@ test('Router.run() resolves simple route and calls replaceState on initial and p
                     expect(_resolvedRoute).to.have.property('query').and.be.deep.equal({});
                     expect(router.currentRoute()).to.be.equal(_resolvedRoute);
 
-                    expect(history.replaceState.calledOnce).to.be.equal(true);
-                    expect(history.pushState.calledOnce).to.be.equal(true);
+                    expect(history.pushState.calledTwice).to.be.equal(true);
                     expect(changeStart.calledTwice).to.be.equal(true);
                     expect(changeSuccess.calledTwice).to.be.equal(true);
                     expect(onTransition.calledTwice).to.be.equal(true);
@@ -277,7 +349,7 @@ test('Router.run() rejects not found route (and if has previous state, calls fai
                 ])
             }
         ],
-        history = new MemoryHistory(),
+        history = createMemoryHistory(),
         onTransition
     );
 
@@ -285,8 +357,6 @@ test('Router.run() rejects not found route (and if has previous state, calls fai
     const changeSuccess = spy();
     const changeFail = spy();
 
-    spy(history, 'state');
-    spy(history, 'replaceState');
     spy(history, 'pushState');
 
     router.addChangeStartListener(changeStart);
@@ -303,7 +373,7 @@ test('Router.run() rejects not found route (and if has previous state, calls fai
             expect(router.currentRoute()).to.have.property('pathname').and.be.equal('/');
             expect(router.currentRoute()).to.have.property('components').and.be.deep.equal(['a', 'b']);
             expect(router.currentRoute()).to.have.property('vars').and.be.deep.equal({});
-            expect(history.replaceState.calledOnce).to.be.equal(true);
+            expect(history.pushState.calledOnce).to.be.equal(true);
             expect(changeStart.calledOnce).to.be.equal(true);
             expect(changeSuccess.calledOnce).to.be.equal(true);
             expect(changeFail.called).to.be.equal(false);
@@ -325,8 +395,7 @@ test('Router.run() rejects not found route (and if has previous state, calls fai
 
                     // we don't expect to change state of history
                     // because we want user to do something about not found event
-                    expect(history.replaceState.calledOnce).to.be.equal(true);
-                    expect(history.pushState.called).to.be.equal(false);
+                    expect(history.pushState.calledOnce).to.be.equal(true);
                 }
             );
         }
@@ -344,7 +413,7 @@ test('Router.run() calls onEnter on route with current route and resolving route
                 children: [{ path: '/nested', component: 'b' }]
             }
         ],
-        new MemoryHistory(),
+        createMemoryHistory(),
         onTransition
     );
 
@@ -382,7 +451,7 @@ function createRouterForWrappers() {
     const router = new Router([
         { path: '/', component: 'A', onEnter: onAEnterSpy },
         { path: '/test', component: 'B', onLeave: onBLeaveSpy }
-    ], new MemoryHistory());
+    ], createMemoryHistory());
 
     return {
         router,

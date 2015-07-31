@@ -28,7 +28,6 @@ export default class Router {
         onTransition = function transitionFinished() {}
     ) {
         invariant(Array.isArray(routes), `Routes should be an array, ${typeof routes} given.`);
-        invariant(typeof history === 'object', `Router history should be an object, ${typeof history} given.`);
         invariant(
             typeof onTransition === 'function',
             `Router onTransition callback should be a function, ${typeof onTransition} given.`
@@ -73,8 +72,9 @@ export default class Router {
             // on handle pop state (we are moving in history)
             // just match route and call change success because we are assuming that everything has been already resolved
             // so just change route
+            const query = qs.parse(location.search.replace(/^\?/, ''));
 
-            resolveWithFirstMatched(this.routes, location.pathname, qs.parse(location.search.replace(/^\?/, ''))).then(
+            resolveWithFirstMatched(this.routes, location.pathname, query).then(
                 (newRoute) => {
                     this._currentRoute = newRoute;
                     this._callEventListeners('changeSuccess', newRoute);
@@ -86,6 +86,11 @@ export default class Router {
 
                     // do nothing about state because it is already store
                     this.onTransition(null, newRoute);
+                },
+                () => {
+                    const e = new RouteNotFoundError('Route not found');
+                    this._callEventListeners('notFound', location.pathname, query);
+                    this.onTransition(e);
                 }
             );
         }

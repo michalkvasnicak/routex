@@ -1,5 +1,5 @@
 import createRoutex from '../src/createRoutex';
-import MemoryHistory from '../src/MemoryHistory';
+import { createMemoryHistory } from 'history';
 import { expect } from 'chai';
 import Router from '../src/Router';
 import { RouteNotFoundError } from '../src/errors';
@@ -20,7 +20,7 @@ let routex = createRoutex([
         path: '/rejected',
         onEnter: () => Promise.reject()
     }
-], new MemoryHistory());
+], createMemoryHistory());
 
 test('createRoutex() exposes public API + router instance', () => {
     expect(routex).to.be.an('object');
@@ -38,12 +38,12 @@ test('createRoutex() exposes redux public API + router instance on redux store',
     expect(store.router).to.be.instanceof(Router);
 });
 
-test('createRoutex() runs router on initial store creation', () => {
-    routex.router.run = spy(routex.router.run);
+test('createRoutex() starts listening to pop state event on initial store creation', () => {
+    routex.router.listen = spy(routex.router.listen);
 
     compose(routex.store, createStore)(combineReducers(routex.reducer));
 
-    expect(routex.router.run.calledOnce).to.be.equal(true);
+    expect(routex.router.listen.calledOnce).to.be.equal(true);
 });
 
 test('createRoutex() runs listeners on successful transition dispatch and sets state in reducer', (done) => {

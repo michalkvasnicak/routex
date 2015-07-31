@@ -10,6 +10,7 @@ Simple router for [Redux](https://github.com/gaearon/redux) universal applicatio
 
 `npm install routex`
 
+**Routex requires history^1.0.0 package to be installed**
 
 ## Usage
 
@@ -100,16 +101,27 @@ React.render(
 
 ```
 
-Available histories:
+### Use router as standalone (without redux / react)
 
-- BrowserHistory (HTML5)
-- MemoryHistory (stupid implementation mainly for server side when we don't need history at all)
+```js
+import { Router } from 'routex';
+import { createBrowserHistory } from 'history';
+
+const router = new Router([/* routes */], createBrowserHistory() /*, optional onTransition hook */);
+
+router.listen(); // start listening to pop state events (immediately will start transition for current location)
+
+// if you want to transition to another location you have to run this
+// if you won't then router will lose track of current location and will pretend
+// that location didn't change
+router.run('/where-you-want-to-go', { /* query params object */});
+```
 
 ### API
 
 - `Router`:
     - `constructor(routes: array, history: Object, onTransition(error, resolvedRoute):Function)`
-        - history is result of calling `createMemoryHistory(), createHashHistory() or createBrowserHistory()` 
+        - history is result of calling `createMemoryHistory(), createHashHistory() or createBrowserHistory()` from `history` 
     - `wrapOnEnterHandler(wrapper:Function)`:
         - wraps route onEnter handler with function
         - it will be called with original handler bound to default arguments (see routeObject) as a first argument
@@ -170,6 +182,4 @@ Available histories:
 
 ## TODO
 
-- more tests
-- how to cancel transitions in components (like in react-router)
 - document lifecycle
