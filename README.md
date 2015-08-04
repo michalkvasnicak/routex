@@ -19,7 +19,7 @@ Simple router for [Redux](https://github.com/gaearon/redux) universal applicatio
 ```js
 import { createRoutex, actions } from 'routex';
 import { compose, createStore, combineReducers } from 'redux';
-import { createBrowserHistory } from 'history';
+import { createHistory } from 'history';
 
 const routes = [
     {
@@ -34,7 +34,7 @@ const routes = [
 ];
 
 // this will return object with high order store and reducer
-const routex = createRoutex(routes, createBrowserHistory(), () => console.log('Transition finished') );
+const routex = createRoutex(routes, createHistory(), () => console.log('Transition finished') );
 
 const newCreateStore = compose(routex.store, createStore);
 const routexReducer = routex.reducer;
@@ -54,7 +54,7 @@ import { createRoutex } from 'routex';
 import { compose, createStore, combineReducers } from 'redux';
 import React, { Component } from 'react';
 import { View, Link } from 'routex/lib/react';
-import { createBrowserHistory } from 'history';
+import { createHistory } from 'history';
 
 class App extends Component {
     render() {
@@ -84,9 +84,9 @@ const routes = [
 ];
 
 // this will return object with high order store and reducer
-const routex = createRoutex(routes, createBrowserHistory(), () => console.log('Transition finished') );
+const routex = createRoutex(routes, createHistory(), () => console.log('Transition finished') );
 
-const newCreateStore = compose(routex.store(), createStore);
+const newCreateStore = compose(routex.store, createStore);
 const routexReducer = routex.reducer;
 const reducers = combineReducers({ ...routexReducer /* your reducers */ });
 
@@ -105,9 +105,9 @@ React.render(
 
 ```js
 import { Router } from 'routex';
-import { createBrowserHistory } from 'history';
+import { createHistory } from 'history';
 
-const router = new Router([/* routes */], createBrowserHistory() /*, optional onTransition hook */);
+const router = new Router([/* routes */], createHistory() /*, optional onTransition hook */);
 
 router.listen(); // start listening to pop state events (immediately will start transition for current location)
 
