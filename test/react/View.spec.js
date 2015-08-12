@@ -1,144 +1,149 @@
+/* eslint func-names:0 */
 import { expect } from 'chai';
 import { createStore, compose, combineReducers } from 'redux';
 import { createRoutex, actions } from '../../src';
 import { createMemoryHistory } from 'history';
 import React, { Component, addons } from 'react/addons';
+import ExecutionEnvironment from 'react/lib/ExecutionEnvironment';
 import { Provider } from 'react-redux';
 import { View } from '../../src/react';
-import { skipIfWindowDoesNotExist } from '../utils';
 
-const utils = addons.TestUtils;
+describe('React', () => {
+    const utils = addons.TestUtils;
 
-function createRoutexStore(routes, initialState, onTransition) {
-    const routex = createRoutex(routes, createMemoryHistory(), onTransition);
+    function createRoutexStore(routes, initialState, onTransition) {
+        const routex = createRoutex(routes, createMemoryHistory(), onTransition);
 
-    return compose(routex.store, createStore)(combineReducers(routex.reducer), initialState);
-}
-
-test('View - renders matched route on initial load when state is not provided (default state)', skipIfWindowDoesNotExist((done) => {
-    class App extends Component {
-        render() {
-            return <div>{this.props.children || 'Pom'}</div>;
-        }
+        return compose(routex.store, createStore)(combineReducers(routex.reducer), initialState);
     }
 
-    const store = createRoutexStore(
-        [
-            {
-                path: '/',
-                component: App
+    describe('View', () => {
+        class App extends Component {
+            render() {
+                return <div>{this.props.children || 'Pom'}</div>;
             }
-        ],
-        undefined,
-        (err) => {
-            if (err) done(err);
-
-            const tree = utils.renderIntoDocument(
-                <Provider store={store}>
-                    {() => <View />}
-                </Provider>
-            );
-
-            utils.findRenderedComponentWithType(tree, App);
-            done();
-        });
-}));
-
-test('View - renders matched route on initial load (rehydrated)', skipIfWindowDoesNotExist((done) => {
-    class App extends Component {
-        render() {
-            return <div>{this.props.children || 'Pom'}</div>;
         }
-    }
 
-    const store = createRoutexStore(
-        [
-            {
-                path: '/',
-                component: App
+        it('renders matched route on initial load when state is not provided (default state)', function(done) {
+            if (!ExecutionEnvironment.canUseDOM) {
+                this.skip();
             }
-        ],
-        {
-            router: { state: 'TRANSITIONED', route: { pathname: '/', query: {}, vars: {} }}
-        },
-        (err) => {
-            if (err) done(err);
 
-            const tree = utils.renderIntoDocument(
-                <Provider store={store}>
-                    {() => <View />}
-                </Provider>
-            );
-
-            utils.findRenderedComponentWithType(tree, App);
-            done();
-        }
-    );
-}));
-
-test('View - renders route components on successful transition', skipIfWindowDoesNotExist((done) => {
-    let started = false;
-
-    class App extends Component {
-        render() {
-            return <div>{this.props.children || 'Pom'}</div>;
-        }
-    }
-
-    class Child extends Component {
-        render() {
-            return <span>pom</span>;
-        }
-    }
-
-    const store = createRoutexStore(
-        [
-            {
-                path: '/',
-                component: App,
-                children: [
+            const store = createRoutexStore(
+                [
                     {
-                        path: '/child',
-                        component: Child
+                        path: '/',
+                        component: App
                     }
-                ]
-            }
-        ],
-        {
-            router: { state: 'TRANSITIONED', route: { pathname: '/', query: {}, vars: {} }}
-        },
-        () => {
-            if (started) {
-                return;
+                ],
+                undefined,
+                (err) => {
+                    if (err) done(err);
+
+                    const tree = utils.renderIntoDocument(
+                        <Provider store={store}>
+                            {() => <View />}
+                        </Provider>
+                    );
+
+                    utils.findRenderedComponentWithType(tree, App);
+                    done();
+                });
+        });
+
+        it('renders matched route on initial load (rehydrated)', function(done) {
+            if (!ExecutionEnvironment.canUseDOM) {
+                this.skip();
             }
 
-            started = true;
+            const store = createRoutexStore(
+                [
+                    {
+                        path: '/',
+                        component: App
+                    }
+                ],
+                {
+                    router: { state: 'TRANSITIONED', route: { pathname: '/', query: {}, vars: {} }}
+                },
+                (err) => {
+                    if (err) done(err);
 
-            const tree = utils.renderIntoDocument(
-                <Provider store={store}>
-                    {() => <View />}
-                </Provider>
+                    const tree = utils.renderIntoDocument(
+                        <Provider store={store}>
+                            {() => <View />}
+                        </Provider>
+                    );
+
+                    utils.findRenderedComponentWithType(tree, App);
+                    done();
+                }
             );
+        });
 
-            try {
-                utils.findRenderedComponentWithType(tree, App);
-            } catch (e) {
-                done(e);
+        it('renders route components on successful transition', function(done) {
+            if (!ExecutionEnvironment.canUseDOM) {
+                this.skip();
             }
 
-            store.dispatch(actions.transitionTo('/child')).then(
+            let started = false;
+
+            class Child extends Component {
+                render() {
+                    return <span>pom</span>;
+                }
+            }
+
+            const store = createRoutexStore(
+                [
+                    {
+                        path: '/',
+                        component: App,
+                        children: [
+                            {
+                                path: '/child',
+                                component: Child
+                            }
+                        ]
+                    }
+                ],
+                {
+                    router: { state: 'TRANSITIONED', route: { pathname: '/', query: {}, vars: {} }}
+                },
                 () => {
+                    if (started) {
+                        return;
+                    }
+
+                    started = true;
+
+                    const tree = utils.renderIntoDocument(
+                        <Provider store={store}>
+                            {() => <View />}
+                        </Provider>
+                    );
+
                     try {
-                        expect(store.getState().router.route.pathname).to.be.equal('/child');
                         utils.findRenderedComponentWithType(tree, App);
-                        utils.findRenderedComponentWithType(tree, Child);
-                        done();
                     } catch (e) {
                         done(e);
                     }
-                },
-                done.bind(this, Error('Should transition to /child'))
+
+                    store.dispatch(actions.transitionTo('/child')).then(
+                        () => {
+                            try {
+                                expect(store.getState().router.route.pathname).to.be.equal('/child');
+                                utils.findRenderedComponentWithType(tree, App);
+                                utils.findRenderedComponentWithType(tree, Child);
+                                done();
+                            } catch (e) {
+                                done(e);
+                            }
+                        },
+                        done.bind(this, Error('Should transition to /child'))
+                    );
+                }
             );
-        }
-    );
-}));
+        });
+    });
+});

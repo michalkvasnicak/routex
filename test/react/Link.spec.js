@@ -1,42 +1,61 @@
+/* eslint func-names:0 */
 import { expect } from 'chai';
-import { createStore, combineReducers } from 'redux';
+import { createStore } from 'redux';
 import React, { render } from 'react/addons';
+import ExecutionEnvironment from 'react/lib/ExecutionEnvironment';
 import { Provider } from 'react-redux';
 import { Link } from '../../src/react';
-import { skipIfWindowDoesNotExist } from '../utils';
 
-test('renders anchor with simple path', skipIfWindowDoesNotExist(() => {
-    const store = createStore(combineReducers({}));
-    const div = document.createElement('div');
+describe('React', () => {
+    describe('Link', () => {
+        let store;
+        let div;
 
-    render(
-        (
-            <Provider store={store}>
-                {() => <Link to="/path/123" />}
-            </Provider>
-        ),
-        div,
-        () => {
-            let a = div.querySelector('a');
-            expect(a.getAttribute('href')).to.be.equal('/path/123');
-        }
-    );
-}));
+        beforeEach(() => {
+            store = createStore(() => {});
 
-test('renders anchor with href and query string', skipIfWindowDoesNotExist(() => {
-    const store = createStore(combineReducers({}));
-    const div = document.createElement('div');
+            if (ExecutionEnvironment.canUseDOM) {
+                div = document.createElement('div');
+            }
+        });
 
-    render(
-        (
-            <Provider store={store}>
-                {() => <Link to="/path/123" query={{ test: 1, name: 'Fero' }} />}
-            </Provider>
-        ),
-        div,
-        () => {
-            let a = div.querySelector('a');
-            expect(a.getAttribute('href')).to.be.equal('/path/123?test=1&name=Fero');
-        }
-    );
-}));
+        it('renders anchor with simple path', function() {
+            if (!ExecutionEnvironment.canUseDOM) {
+                this.skip();
+            }
+
+            render(
+                (
+                    <Provider store={store}>
+                        {() => <Link to="/path/123" />}
+                    </Provider>
+                ),
+                div,
+                () => {
+                    let a = div.querySelector('a');
+                    expect(a.getAttribute('href')).to.be.equal('/path/123');
+                }
+            );
+        });
+
+        it('renders anchor with href and query string', function() {
+            if (!ExecutionEnvironment.canUseDOM) {
+                this.skip();
+            }
+
+            render(
+                (
+                    <Provider store={store}>
+                        {() => <Link to="/path/123" query={{ test: 1, name: 'Fero' }} />}
+                    </Provider>
+                ),
+                div,
+                () => {
+                    let a = div.querySelector('a');
+                    expect(a.getAttribute('href')).to.be.equal('/path/123?test=1&name=Fero');
+                }
+            );
+        });
+    });
+});
+
