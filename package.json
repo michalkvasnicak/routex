@@ -25,7 +25,7 @@
     "build:umd:routex": "webpack src/index.js dist/routex.js && NODE_ENV=production webpack src/index.js dist/routex.min.js",
     "build:umd:react": "MODULENAME=react-routex webpack src/react/index.js dist/react-routex.js && NODE_ENV=production MODULE_NAME=react-routex webpack src/react/index.js dist/react-routex.min.js",
     "lint": "eslint -c .eslintrc src test",
-    "test": "NODE_ENV=test prever -v 'test/**/*.spec.js'",
+    "test": "NODE_ENV=test prever 'test/**/*.spec.js'",
     "test:browser": "NODE_ENV=test prever -e browser",
     "test:browser:watch": "npm run test:browser -- -w",
     "prepublish": "npm run lint && npm run test && npm run clean && npm run build"
