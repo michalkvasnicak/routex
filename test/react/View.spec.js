@@ -24,6 +24,12 @@ describe('React', () => {
             }
         }
 
+        class Child extends Component {
+            render() {
+                return <div>Child</div>;
+            }
+        }
+
         it('renders matched route on initial load when state is not provided (default state)', function(done) {
             if (!ExecutionEnvironment.canUseDOM) {
                 this.skip();
