@@ -28,6 +28,22 @@ describe('Router', () => {
         });
     });
 
+    describe('#createHref()', () => {
+        it('creates href using history.createHref()', () => {
+            const history = createMemoryHistory();
+
+            const router = new Router(
+                [{ path: '/', component: 'A' }],
+                history
+            );
+
+            spy(history, 'createHref');
+
+            expect(router.createHref('/', { a: 1 })).to.be.equal('/?a=1');
+            expect(history.createHref.calledOnce).to.be.equal(true);
+        });
+    });
+
     describe('#listen()', () => {
         it(
             'starts listening to pop state events and replaces state on initial and replaces state if undefined',

@@ -1,9 +1,8 @@
 import Route from './Route';
 import { normalizeRouteDefinition } from './utils/routeUtils';
 import { resolveWithFirstMatched } from './utils/routerUtils';
-import { Actions } from 'history';
+import { Actions, enableQueries } from 'history';
 import invariant from 'invariant';
-import qs from 'qs';
 import { RouteNotFoundError } from './errors';
 
 function instantiateRoutes(routes) {
@@ -35,7 +34,8 @@ export default class Router {
 
         this.routes = instantiateRoutes(routes);
 
-        this.history = history;
+        // enable queries means that query parameters can be used directly as objects
+        this.history = enableQueries(history);
 
         this.onTransition = onTransition || function transitionFinished() {};
 
@@ -60,6 +60,10 @@ export default class Router {
         this._currentRoute = null;
     }
 
+    createHref(path, query = {}) {
+        return this.history.createHref(path, query);
+    }
+
     listen() {
         // listen to popState event
         this.history.listen(this._handleChange.bind(this));
@@ -72,16 +76,15 @@ export default class Router {
             // on handle pop state (we are moving in history)
             // just match route and call change success because we are assuming that everything has been already resolved
             // so just change route
-            const query = qs.parse(location.search.replace(/^\?/, ''));
 
-            resolveWithFirstMatched(this.routes, location.pathname, query).then(
+            resolveWithFirstMatched(this.routes, location.pathname, location.query).then(
                 (newRoute) => {
                     this._currentRoute = newRoute;
                     this._callEventListeners('changeSuccess', newRoute);
 
                     // replace state with new route if is not set (initial load)
                     if (!location.state) {
-                        this.history.replaceState(newRoute, location.pathname + location.search);
+                        this.history.replaceState(newRoute, location.pathname, location.query);
                     }
 
                     // do nothing about state because it is already store
@@ -89,7 +92,7 @@ export default class Router {
                 },
                 () => {
                     const e = new RouteNotFoundError('Route not found');
-                    this._callEventListeners('notFound', location.pathname, query);
+                    this._callEventListeners('notFound', location.pathname, location.query);
                     this.onTransition(e);
                 }
             );
@@ -163,6 +166,13 @@ export default class Router {
         this._wrapRouteHandler('onLeave', handler);
     }
 
+    /**
+     * Starts router transition
+     *
+     * @param {String} path
+     * @param {Object} query
+     * @returns {Promise}
+     */
     run(path, query = {}) {
         return new Promise((resolve, reject) => {
             // runs route handler bound to given arguments (from our code)
@@ -231,9 +241,7 @@ export default class Router {
                 this._currentRoute = resolvedRoute;
                 this._callEventListeners('changeSuccess', resolvedRoute);
 
-                const stringifiedQuery = qs.stringify(query, { arrayBrackets: true });
-
-                this.history.pushState(resolvedRoute, path + (stringifiedQuery ? '?' + stringifiedQuery : ''));
+                this.history.pushState(resolvedRoute, path, query);
 
                 this.onTransition(null, resolvedRoute);
                 resolve(resolvedRoute);

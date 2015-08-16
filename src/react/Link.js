@@ -1,5 +1,5 @@
 import { transitionTo } from '../actions';
-import qs from 'qs';
+import Router from '../Router';
 
 export default function createLink(React) {
     const { Component, PropTypes } = React;
@@ -7,7 +7,8 @@ export default function createLink(React) {
     return class Link extends Component {
         static contextTypes = {
             store: PropTypes.shape({
-                dispatch: PropTypes.func.isRequired
+                dispatch: PropTypes.func.isRequired,
+                router: PropTypes.instanceOf(Router).isRequired
             }).isRequired
         };
 
@@ -29,8 +30,7 @@ export default function createLink(React) {
 
         render() {
             const { to, query, ...props } = this.props;
-            const stringQuery = qs.stringify(query, { arrayFormat: 'brackets' });
-            const href = to + (stringQuery.length ? '?' + stringQuery : '');
+            const href = this.context.store.router.createHref(to, query);
 
             return (
                 <a
