@@ -1,6 +1,8 @@
 /* eslint func-names:0 */
 import { expect } from 'chai';
-import { createStore } from 'redux';
+import { createStore, combineReducers, compose } from 'redux';
+import { createMemoryHistory } from 'history';
+import createRoutex from '../../src/createRoutex.js';
 import React, { render } from 'react/addons';
 import ExecutionEnvironment from 'react/lib/ExecutionEnvironment';
 import { Provider } from 'react-redux';
@@ -12,7 +14,8 @@ describe('React', () => {
         let div;
 
         beforeEach(() => {
-            store = createStore(() => {});
+            const routex = createRoutex([], createMemoryHistory());
+            store = compose(routex.store, createStore)(combineReducers(routex.reducer));
 
             if (ExecutionEnvironment.canUseDOM) {
                 div = document.createElement('div');
