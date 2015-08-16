@@ -6,13 +6,14 @@
     "node": true
   },
   "rules": {
+    "comma-dangle": [2, "never"],
     "padded-blocks": 0,
     "react/jsx-uses-react": 2,
     "react/jsx-uses-vars": 2,
     "react/react-in-jsx-scope": 2,
 
     // indent 4 spaces
-    "indent": [2, 4]
+    "indent": [2, 4, {"SwitchCase": 1}]
   },
   "plugins": [
     "react"

@@ -45,7 +45,7 @@ export default function createRoutex(routes, history, onTransition) {
         }
 
         // register listeners
-        router.addChangeStartListener((currentRoute, resolvedRoute/*, router*/) => {
+        router.addChangeStartListener((currentRoute, resolvedRoute/* , router*/) => {
             nextStore.dispatch(changeStart(currentRoute, resolvedRoute));
         });
 
@@ -53,7 +53,7 @@ export default function createRoutex(routes, history, onTransition) {
             nextStore.dispatch(changeSuccess(resolvedRoute));
         });
 
-        router.addChangeFailListener((error, previousRoute/*, router*/) => {
+        router.addChangeFailListener((error, previousRoute/* , router*/) => {
             nextStore.dispatch(changeFail(previousRoute, error));
         });
 

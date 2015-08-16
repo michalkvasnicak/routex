@@ -2,11 +2,6 @@ export default function createView(React, connect) {
     const { Component, PropTypes, isValidElement } = React;
 
     class View extends Component {
-
-        static contextTypes = {
-            store: PropTypes.object.isRequired
-        };
-
         static propTypes = {
             state: PropTypes.oneOf(['INITIAL', 'TRANSITIONING', 'TRANSITIONED']).isRequired,
             route: PropTypes.shape({
@@ -15,6 +10,10 @@ export default function createView(React, connect) {
                 vars: PropTypes.object.isRequired,
                 components: PropTypes.array.isRequired
             })
+        };
+
+        static contextTypes = {
+            store: PropTypes.object.isRequired
         };
 
         render() {

@@ -12,8 +12,8 @@ import invariant from 'invariant';
 export function buildMatcher(pathPattern, basePath = '/') {
     // first find all variables
     let pathRegexp;
-    let variableNames = [];
-    let variablePatterns = [];
+    const variableNames = [];
+    const variablePatterns = [];
 
     // normalize slashes, trim slashes from end
     // and parse path pattern to variable names, etc
@@ -53,7 +53,7 @@ export function buildMatcher(pathPattern, basePath = '/') {
                 return false;
             }
 
-            let vars = {};
+            const vars = {};
 
             variableNames.forEach((name, index) => {
                 vars[name] = matched[index + 1];

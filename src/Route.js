@@ -13,7 +13,7 @@ import {
  */
 function resolveAsyncRoutes(children) {
     return new Promise((resolve, reject) => {
-        let routes = children();
+        const routes = children();
 
         if (!(routes instanceof Promise)) {
             const type = typeof routes;
@@ -185,7 +185,7 @@ export default class Route {
             };
 
             // if child matchers matches, try to match children first
-            let childMatch = this.childMatcher(path);
+            const childMatch = this.childMatcher(path);
 
             if (childMatch) {
                 // resolve children routes

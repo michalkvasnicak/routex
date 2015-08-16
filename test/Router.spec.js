@@ -34,7 +34,7 @@ describe('Router', () => {
             (done) => {
                 const changeStart = spy();
                 const changeSuccess = spy();
-                let history = createMemoryHistory();
+                const history = createMemoryHistory();
 
                 const router = new Router(
                     [{ path: '/', component: 'A' }],
@@ -75,7 +75,7 @@ describe('Router', () => {
                 const changeStart = spy();
                 const changeSuccess = spy();
                 const notFound = spy();
-                let history = createMemoryHistory([{ pathname: '/unknown', search: '?a=1&b=0' }]);
+                const history = createMemoryHistory([{ pathname: '/unknown', search: '?a=1&b=0' }]);
 
                 const router = new Router(
                     [{ path: '/', component: 'A' }],

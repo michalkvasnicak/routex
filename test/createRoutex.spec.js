@@ -8,7 +8,7 @@ import { transitionTo } from '../src/actions';
 import { spy } from 'sinon';
 
 describe('createRoutex()', () => {
-    let routex = createRoutex([
+    const routex = createRoutex([
         {
             path: '/',
             component: 'Index'

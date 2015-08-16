@@ -57,7 +57,7 @@ describe('routex', () => {
     it('replaces state in history on initial load if router state is initial', (done) => {
         spy(history, 'replaceState');
 
-        let onTransition = spy(() => {
+        const onTransition = spy(() => {
             expect(onTransition.called).to.be.equal(true);
             expect(history.replaceState.called).to.be.equal(true);
             expect(store.getState().router.state).to.be.equal('TRANSITIONED');
@@ -76,7 +76,7 @@ describe('routex', () => {
     it('replaces state in history on initial load if current state is null (in browser after load)', (done) => {
         spy(history, 'replaceState');
 
-        let onTransition = spy(() => {
+        const onTransition = spy(() => {
             expect(onTransition.called).to.be.equal(true);
             expect(history.replaceState.called).to.be.equal(true);
             expect(store.getState().router.state).to.be.equal('TRANSITIONED');

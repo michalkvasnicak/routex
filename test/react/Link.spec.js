@@ -32,7 +32,7 @@ describe('React', () => {
                 ),
                 div,
                 () => {
-                    let a = div.querySelector('a');
+                    const a = div.querySelector('a');
                     expect(a.getAttribute('href')).to.be.equal('/path/123');
                 }
             );
@@ -51,7 +51,7 @@ describe('React', () => {
                 ),
                 div,
                 () => {
-                    let a = div.querySelector('a');
+                    const a = div.querySelector('a');
                     expect(a.getAttribute('href')).to.be.equal('/path/123?test=1&name=Fero');
                 }
             );

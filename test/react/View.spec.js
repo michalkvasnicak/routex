@@ -1,4 +1,4 @@
-/* eslint func-names:0 */
+/* eslint func-names:0, react/prop-types:0, react/no-multi-comp:0 */
 import { expect } from 'chai';
 import { createStore, compose, combineReducers } from 'redux';
 import { createRoutex, actions } from '../../src';
@@ -87,12 +87,6 @@ describe('React', () => {
             }
 
             let started = false;
-
-            class Child extends Component {
-                render() {
-                    return <span>pom</span>;
-                }
-            }
 
             const store = createRoutexStore(
                 [
