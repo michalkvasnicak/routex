@@ -1,6 +1,6 @@
 {
   "name": "routex",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Simple router for Redux universal applications. Can be used with React too.",
   "main": "lib/index.js",
   "license": "MIT",
