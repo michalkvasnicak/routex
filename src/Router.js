@@ -1,9 +1,34 @@
 import Route from './Route';
 import { normalizeRouteDefinition } from './utils/routeUtils';
 import { resolveWithFirstMatched } from './utils/routerUtils';
-import { Actions, enableQueries } from 'history';
+import { Actions } from 'history';
 import invariant from 'invariant';
 import { RouteNotFoundError } from './errors';
+import { parse as _parseQuery, stringify as _stringifyQuery } from 'qs';
+
+/**
+ * Stringifies query
+ *
+ * @param {Object.<String, *>} query
+ * @returns {String}
+ */
+function stringifyQuery(query = {}) {
+    return _stringifyQuery(query, { arrayFormat: 'brackets' });
+}
+
+/**
+ * Parses query
+ *
+ * @param {String} search
+ * @returns {Object.<String, *>}
+ */
+function parseQuery(search) {
+    if (/^\?/.test(search)) {
+        return _parseQuery(search.substring(1));
+    }
+
+    return {};
+}
 
 function instantiateRoutes(routes) {
     return routes.map((definition) => {
@@ -35,7 +60,7 @@ export default class Router {
         this.routes = instantiateRoutes(routes);
 
         // enable queries means that query parameters can be used directly as objects
-        this.history = enableQueries(history);
+        this.history = history;
 
         this.onTransition = onTransition || function transitionFinished() {};
 
@@ -60,8 +85,29 @@ export default class Router {
         this._currentRoute = null;
     }
 
+    /**
+     * Creates href
+     *
+     * @param {String} path
+     * @param {Object.<String, *>} query
+     * @returns {String}
+     */
     createHref(path, query = {}) {
-        return this.history.createHref(path, query);
+        // if path contains ? strip it
+        const match = path.match(/^([^?]*)(\?.*)?$/);
+
+        let url = `${match[1]}`;
+        let queryParams = match[2] ? parseQuery(match[2]) : {};
+
+        // merge with query
+        queryParams = { ...queryParams, ...query };
+
+        // stringify params only if query contains something
+        if (Object.keys(queryParams).length) {
+            url += `?${stringifyQuery(queryParams)}`;
+        }
+
+        return url;
     }
 
     listen() {
@@ -77,14 +123,17 @@ export default class Router {
             // just match route and call change success because we are assuming that everything has been already resolved
             // so just change route
 
-            resolveWithFirstMatched(this.routes, location.pathname, location.query).then(
+            resolveWithFirstMatched(this.routes, location.pathname, parseQuery(location.search)).then(
                 (newRoute) => {
                     this._currentRoute = newRoute;
                     this._callEventListeners('changeSuccess', newRoute);
 
                     // replace state with new route if is not set (initial load)
                     if (!location.state) {
-                        this.history.replaceState(newRoute, location.pathname, location.query);
+                        this.history.replaceState(
+                            newRoute,
+                            this.createHref(location.pathname, parseQuery(location.search))
+                        );
                     }
 
                     // do nothing about state because it is already store
@@ -92,7 +141,7 @@ export default class Router {
                 },
                 () => {
                     const e = new RouteNotFoundError('Route not found');
-                    this._callEventListeners('notFound', location.pathname, location.query);
+                    this._callEventListeners('notFound', location.pathname, parseQuery(location.search));
                     this.onTransition(e);
                 }
             );
@@ -241,7 +290,7 @@ export default class Router {
                 this._currentRoute = resolvedRoute;
                 this._callEventListeners('changeSuccess', resolvedRoute);
 
-                this.history.pushState(resolvedRoute, path, query);
+                this.history.pushState(resolvedRoute, this.createHref(path, query));
 
                 this.onTransition(null, resolvedRoute);
                 resolve(resolvedRoute);

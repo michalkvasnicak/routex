@@ -29,18 +29,33 @@ describe('Router', () => {
     });
 
     describe('#createHref()', () => {
-        it('creates href using history.createHref()', () => {
-            const history = createMemoryHistory();
-
+        it('creates simple href', () => {
             const router = new Router(
                 [{ path: '/', component: 'A' }],
-                history
+                createMemoryHistory()
             );
 
-            spy(history, 'createHref');
-
             expect(router.createHref('/', { a: 1 })).to.be.equal('/?a=1');
-            expect(history.createHref.calledOnce).to.be.equal(true);
+            expect(router.createHref('/', { a: [1, 0] })).to.be.equal('/?a%5B%5D=1&a%5B%5D=0');
+        });
+
+        it('parses existing query string and merges with new query params', () => {
+            const router = new Router(
+                [{ path: '/', component: 'A' }],
+                createMemoryHistory()
+            );
+
+            expect(router.createHref('/?b=1', { a: [1, 0] })).to.be.equal('/?b=1&a%5B%5D=1&a%5B%5D=0');
+            expect(router.createHref('/?', { a: 1 })).to.be.equal('/?a=1');
+        });
+
+        it('strips question mark if query string of given path is empty', () => {
+            const router = new Router(
+                [{ path: '/', component: 'A' }],
+                createMemoryHistory()
+            );
+
+            expect(router.createHref('/?')).to.be.equal('/');
         });
     });
 
