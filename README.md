@@ -130,12 +130,14 @@ router.run('/where-you-want-to-go', { /* query params object */});
         - wraps route onLeave handler with function
         - it will be called with original handler bound to default arguments (see routeObject) as a first argument
         - wrapper signature: `function(originalHandler): result from original handler`
+    - `createHref(pathname: String, query: Object.<String, *>):String`
     - `currentRoute():null|routeObject`
     - `addChangeStartListener(listener:Function):Function` - returns unsubscribe function
     - `addChangeSuccessListener(listener:Function):Function` - returns unsubscribe function
     - `addChangeFailListener(listener:Function):Function` - returns unsubscribe function
     - `addNotFoundListener(listener:Function):Function` - returns unsubscribe function
     - `run(path: string, query: object):Promise`
+    - `listen()` - starts listening to history pop events (and will fire POPstate event immediately after `listen()` call
 
 - `createRoutex(routes: array, history: History, onTransition(error, resolvedRoute): Function):{{ store: Function, reducer: { router: Function } }}`
     - `routes`: array of routeObject (see below)
