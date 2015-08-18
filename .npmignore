@@ -2,6 +2,7 @@
 
 src
 test
+scripts
 *.log
 .DS_Store
 
@@ -54,4 +55,10 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 
-
+.babelrc
+.editorconfig
+.eslintignore
+.eslint
+.gitignore
+.travis.yml
+webpack.config.js
