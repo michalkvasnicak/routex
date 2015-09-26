@@ -8,20 +8,24 @@ import { transitionTo } from '../src/actions';
 import { spy } from 'sinon';
 
 describe('createRoutex()', () => {
-    const routex = createRoutex([
-        {
-            path: '/',
-            component: 'Index'
-        },
-        {
-            path: '/test',
-            component: 'Test'
-        },
-        {
-            path: '/rejected',
-            onEnter: () => Promise.reject()
-        }
-    ], createMemoryHistory());
+    let routex;
+
+    beforeEach(() => {
+        routex = createRoutex([
+            {
+                path: '/',
+                component: 'Index'
+            },
+            {
+                path: '/test',
+                component: 'Test'
+            },
+            {
+                path: '/rejected',
+                onEnter: () => Promise.reject()
+            }
+        ], createMemoryHistory());
+    });
 
     it('exposes public API + router instance', () => {
         expect(routex).to.be.an('object');
@@ -32,17 +36,17 @@ describe('createRoutex()', () => {
     });
 
     it('exposes redux public API + router instance on redux store', () => {
-        const store = compose(routex.store, createStore)(combineReducers(routex.reducer));
+        const store = compose(routex.store)(createStore)(combineReducers(routex.reducer));
 
         expect(store).to.be.an('object');
-        expect(store).to.have.keys('dispatch', 'subscribe', 'getState', 'getReducer', 'replaceReducer', 'router');
+        expect(store).to.have.keys('dispatch', 'subscribe', 'getState', 'replaceReducer', 'router');
         expect(store.router).to.be.instanceof(Router);
     });
 
     it('starts listening to pop state event on initial store creation', () => {
         routex.router.listen = spy(routex.router.listen);
 
-        compose(routex.store, createStore)(combineReducers(routex.reducer));
+        compose(routex.store)(createStore)(combineReducers(routex.reducer));
 
         expect(routex.router.listen.calledOnce).to.be.equal(true);
     });
@@ -50,7 +54,7 @@ describe('createRoutex()', () => {
     it('runs listeners on successful transition dispatch and sets state in reducer', (done) => {
         routex.router.run = spy(routex.router.run);
 
-        const store = compose(routex.store, createStore)(combineReducers(routex.reducer));
+        const store = compose(routex.store)(createStore)(combineReducers(routex.reducer));
         const startSpy = spy();
         const successSpy = spy();
         let indexRoute;
@@ -106,7 +110,7 @@ describe('createRoutex()', () => {
     it('runs listeners on failed transition dispatch and sets state in reducer', (done) => {
         routex.router.run = spy(routex.router.run);
 
-        const store = compose(routex.store, createStore)(combineReducers(routex.reducer));
+        const store = compose(routex.store)(createStore)(combineReducers(routex.reducer));
         const startSpy = spy();
         const failSpy = spy();
         let indexRoute;
@@ -150,7 +154,7 @@ describe('createRoutex()', () => {
     it('runs only not found listeners on transition dispatch to non existing route', (done) => {
         routex.router.run = spy(routex.router.run);
 
-        const store = compose(routex.store, createStore)(combineReducers(routex.reducer));
+        const store = compose(routex.store)(createStore)(combineReducers(routex.reducer));
         const startSpy = spy();
         const successSpy = spy();
         const failSpy = spy();

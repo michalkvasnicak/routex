@@ -1,23 +1,29 @@
 /* eslint func-names:0, react/prop-types:0, react/no-multi-comp:0 */
+global.navigator = {
+    userAgent: 'node.js'
+};
+
 import { expect } from 'chai';
 import { createStore, compose, combineReducers } from 'redux';
+import TestUtils from 'react-addons-test-utils';
+import jsdom from 'mocha-jsdom';
 import { createRoutex, actions } from '../../src';
 import { createMemoryHistory } from 'history';
-import React, { Component, addons } from 'react/addons';
-import ExecutionEnvironment from 'react/lib/ExecutionEnvironment';
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom/server';
 import { Provider } from 'react-redux';
 import { View } from '../../src/react';
 
 describe('React', () => {
-    const utils = addons.TestUtils;
-
     function createRoutexStore(routes, initialState, onTransition) {
-        const routex = createRoutex(routes, createMemoryHistory(), onTransition);
+        const routex = createRoutex(routes, createMemoryHistory('/'), onTransition);
 
-        return compose(routex.store, createStore)(combineReducers(routex.reducer), initialState);
+        return compose(routex.store)(createStore)(combineReducers(routex.reducer), initialState);
     }
 
     describe('View', () => {
+        jsdom();
+
         class App extends Component {
             render() {
                 return <div>{this.props.children || 'Pom'}</div>;
@@ -31,10 +37,6 @@ describe('React', () => {
         }
 
         it('renders matched route on initial load when state is not provided (default state)', function(done) {
-            if (!ExecutionEnvironment.canUseDOM) {
-                this.skip();
-            }
-
             const store = createRoutexStore(
                 [
                     {
@@ -46,22 +48,18 @@ describe('React', () => {
                 (err) => {
                     if (err) done(err);
 
-                    const tree = utils.renderIntoDocument(
+                    const tree = TestUtils.renderIntoDocument(
                         <Provider store={store}>
-                            {() => <View />}
+                            <View />
                         </Provider>
                     );
 
-                    utils.findRenderedComponentWithType(tree, App);
+                    TestUtils.findRenderedComponentWithType(tree, App);
                     done();
                 });
         });
 
         it('renders matched route on initial load (rehydrated)', function(done) {
-            if (!ExecutionEnvironment.canUseDOM) {
-                this.skip();
-            }
-
             const store = createRoutexStore(
                 [
                     {
@@ -75,23 +73,19 @@ describe('React', () => {
                 (err) => {
                     if (err) done(err);
 
-                    const tree = utils.renderIntoDocument(
+                    const tree = TestUtils.renderIntoDocument(
                         <Provider store={store}>
-                            {() => <View />}
+                            <View />
                         </Provider>
                     );
 
-                    utils.findRenderedComponentWithType(tree, App);
+                    TestUtils.findRenderedComponentWithType(tree, App);
                     done();
                 }
             );
         });
 
         it('renders route components on successful transition', function(done) {
-            if (!ExecutionEnvironment.canUseDOM) {
-                this.skip();
-            }
-
             let started = false;
 
             const store = createRoutexStore(
@@ -117,31 +111,41 @@ describe('React', () => {
 
                     started = true;
 
-                    const tree = utils.renderIntoDocument(
-                        <Provider store={store}>
-                            {() => <View />}
-                        </Provider>
-                    );
-
                     try {
-                        utils.findRenderedComponentWithType(tree, App);
+                        expect(
+                            ReactDOM.renderToString(
+                                <Provider store={store}>
+                                    <View />
+                                </Provider>
+                            )
+                        ).to.match(/Pom/);
                     } catch (e) {
                         done(e);
                     }
 
-                    store.dispatch(actions.transitionTo('/child')).then(
+                    setImmediate(
                         () => {
-                            try {
-                                expect(store.getState().router.route.pathname).to.be.equal('/child');
-                                utils.findRenderedComponentWithType(tree, App);
-                                utils.findRenderedComponentWithType(tree, Child);
-                                done();
-                            } catch (e) {
-                                done(e);
-                            }
-                        },
-                        done.bind(this, Error('Should transition to /child'))
+                            store.dispatch(actions.transitionTo('/child')).then(
+                                () => {
+                                    try {
+                                        expect(store.getState().router.route.pathname).to.be.equal('/child');
+                                        expect(
+                                            ReactDOM.renderToString(
+                                                <Provider store={store}>
+                                                    <View />
+                                                </Provider>
+                                            )
+                                        ).to.match(/Child/);
+                                        done();
+                                    } catch (e) {
+                                        done(e);
+                                    }
+                                },
+                                done.bind(this, Error('Should transition to /child'))
+                            );
+                        }
                     );
+
                 }
             );
         });

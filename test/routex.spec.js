@@ -24,7 +24,7 @@ describe('routex', () => {
             onTransition
         );
 
-        return compose(routex.store, createStore)(combineReducers(routex.reducer), initialState);
+        return compose(routex.store)(createStore)(combineReducers(routex.reducer), initialState);
     }
 
     function stripRouteInfo(route) {

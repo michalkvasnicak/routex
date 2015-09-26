@@ -304,7 +304,9 @@ export default class Router {
                 runRouteHandlers('onLeave', this._currentRoute, resolvedRoute, this).then(
                     () => runRouteHandlers('onEnter', resolvedRoute, this._currentRoute, resolvedRoute, this).then(
                         () => resolveComponents(resolvedRoute.components).then(
-                            (components) => finishRun({ ...resolvedRoute, components }),
+                            (components) => {
+                                finishRun({ ...resolvedRoute, components });
+                            },
                             rejectTransition('Route components cannot be resolved')
                         ),
                         rejectTransition('Route onEnter handlers are rejected.')
