@@ -1,6 +1,6 @@
 # Routex
 
-[![Build Status](https://travis-ci.org/michalkvasnicak/routex.svg?branch=master)](https://travis-ci.org/michalkvasnicak/routex)
+[![Circle CI](https://circleci.com/gh/michalkvasnicak/routex.svg?style=svg)](https://circleci.com/gh/michalkvasnicak/routex)
 
 Simple router for [Redux](https://github.com/gaearon/redux) universal applications. Can be used with [React](https://github.com/facebook/react) too.
 
@@ -47,7 +47,7 @@ store.dispatch(actions.transitionTo('/about')); // transitions to about
 store.generateLink('about'); // generates link object (see api)
 ```
 
-### Creating routex using in React app (React >= 0.13)
+### Creating routex using in React app (React >= 0.14)
 
 ```js
 import { createRoutex } from 'routex';
@@ -94,7 +94,7 @@ const store = newCreateStore(reducers);
 
 React.render(
     <Provider store={store}>
-        {() => <View />}
+        <View />
     </Provider>
     , document.getElementById('App')
 );
