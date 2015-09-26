@@ -445,9 +445,22 @@ describe('Router', () => {
             const router = new Router(
                 [
                     {
-                        path: '/',
-                        component: 'a',
-                        children: [{ path: '/nested', component: 'b' }]
+                        path: 'a',
+                        component: 'dashboard',
+                        children: [
+                            {
+                                path: 'b',
+                                component: 'newmessage'
+                            }
+                        ]
+                    },
+                    {
+                        path: '',
+                        component: 'login'
+                    },
+                    {
+                        path: 'registration',
+                        component: 'registration'
                     }
                 ],
                 createMemoryHistory(),
@@ -467,7 +480,7 @@ describe('Router', () => {
                     expect(resolvedRoute).to.be.equal(router.currentRoute());
                     const previousRoute = router.currentRoute();
 
-                    return router.run('/nested').then(
+                    return router.run('/a/b').then(
                         (newRoute) => {
                             expect(changeStart.calledTwice).to.be.equal(true);
                             expect(router.currentRoute()).not.to.be.equal(previousRoute);

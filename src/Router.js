@@ -36,7 +36,7 @@ function instantiateRoutes(routes) {
 
         return new Route(
             normalized.path,
-            '',
+            undefined,
             normalized.children,
             normalized.onEnter,
             normalized.onLeave,

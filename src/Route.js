@@ -1,6 +1,7 @@
 import invariant from 'invariant';
 import { buildMatcher, normalizeRouteDefinition } from './utils/routeUtils';
 import { resolveWithFirstMatched } from './utils/routerUtils';
+import { normalizeSlashes } from './utils/stringUtils';
 import {
     NoRoutesToResolveError
 } from './errors';
@@ -143,7 +144,7 @@ export default class Route {
                 return routes.map((route) => {
                     return new Route(
                         route.path,
-                        this.path,
+                        normalizeSlashes(this.basePath + '/' + this.path),
                         route.children,
                         route.onEnter,
                         route.onLeave,
