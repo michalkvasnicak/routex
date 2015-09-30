@@ -30,8 +30,18 @@ export default function createLink(React, connect) {
             const { state, route } = router;
 
             if (state === 'TRANSITIONED' && stateProps && route) {
+                let matches = href === route.pathname;
+
+                if (!matches) {
+                    if (href.length > route.pathname.length) {
+                        matches = (new RegExp(`^${route.pathname}(/.*)?$`)).test(href);
+                    } else {
+                        matches = (new RegExp(`^(${href}|${href}/.*)$`)).test(route.pathname);
+                    }
+                }
+
                 stateProps = stateProps[
-                    href === route.pathname ? 'active' : 'inactive'
+                    matches ? 'active' : 'inactive'
                 ];
 
                 props = {

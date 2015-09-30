@@ -17,10 +17,16 @@ describe('React', () => {
         let store;
 
         beforeEach(() => {
-            const routex = createRoutex([{
-                path: '/path/:id',
-                component: 'a'
-            }], createMemoryHistory());
+            const routex = createRoutex([
+                {
+                    path: '/path/:id/messages',
+                    component: 'a'
+                },
+                {
+                    path: '/path/:id',
+                    component: 'b'
+                }
+            ], createMemoryHistory());
 
             store = compose(
                 routex.store
@@ -49,15 +55,16 @@ describe('React', () => {
             expect(tree).to.be.equal('<a href="/path/123?test=1&amp;name=Fero"></a>');
         });
 
-        it('adds props from stateProps by current state', function(done) {
-            const stateProps = {
-                active: { className: 'active' },
-                inactive: { className: 'inactive' }
-            };
+        describe('adds props from stateProps by current state', () => {
+            it('short route', function(done) {
+                const stateProps = {
+                    active: { className: 'active' },
+                    inactive: { className: 'inactive' }
+                };
 
-            store
-                .dispatch(transitionTo('/path/123'))
-                .then(
+                store
+                    .dispatch(transitionTo('/path/123'))
+                    .then(
                     () => {
                         try {
                             const tree = renderToStaticMarkup(
@@ -65,6 +72,7 @@ describe('React', () => {
                                     <div>
                                         <Link to="/path/123" stateProps={stateProps} />
                                         <Link to="/path/12" stateProps={stateProps} />
+                                        <Link to="/path/123/messages" stateProps={stateProps} />
                                     </div>
                                 </Provider>
                             );
@@ -73,6 +81,7 @@ describe('React', () => {
                                 '<div>' +
                                 '<a href="/path/123" class="active"></a>' +
                                 '<a href="/path/12" class="inactive"></a>' +
+                                '<a href="/path/123/messages" class="active"></a>' +
                                 '</div>'
                             );
 
@@ -83,6 +92,83 @@ describe('React', () => {
                     },
                     () => done(new Error('Route not found'))
                 );
+            });
+
+            it('longer route', function(done) {
+                const stateProps = {
+                    active: { className: 'active' },
+                    inactive: { className: 'inactive' }
+                };
+
+                store
+                    .dispatch(transitionTo('/path/123/messages'))
+                    .then(
+                    () => {
+                        try {
+                            const tree = renderToStaticMarkup(
+                                <Provider store={store}>
+                                    <div>
+                                        <Link to="/path/123" stateProps={stateProps} />
+                                        <Link to="/path/12" stateProps={stateProps} />
+                                        <Link to="/path/123/messages" stateProps={stateProps} />
+                                    </div>
+                                </Provider>
+                            );
+
+                            expect(tree).to.be.equal(
+                                '<div>' +
+                                '<a href="/path/123" class="active"></a>' +
+                                '<a href="/path/12" class="inactive"></a>' +
+                                '<a href="/path/123/messages" class="active"></a>' +
+                                '</div>'
+                            );
+
+                            done();
+                        } catch (e) {
+                            done(e);
+                        }
+                    },
+                    () => done(new Error('Route not found'))
+                );
+            });
+
+            it('possible conflict in routes', function(done) {
+                const stateProps = {
+                    active: { className: 'active' },
+                    inactive: { className: 'inactive' }
+                };
+
+                store
+                    .dispatch(transitionTo('/path/12'))
+                    .then(
+                    () => {
+                        try {
+                            const tree = renderToStaticMarkup(
+                                <Provider store={store}>
+                                    <div>
+                                        <Link to="/path/123" stateProps={stateProps} />
+                                        <Link to="/path/12" stateProps={stateProps} />
+                                        <Link to="/path/123/messages" stateProps={stateProps} />
+                                    </div>
+                                </Provider>
+                            );
+
+                            expect(tree).to.be.equal(
+                                '<div>' +
+                                '<a href="/path/123" class="inactive"></a>' +
+                                '<a href="/path/12" class="active"></a>' +
+                                '<a href="/path/123/messages" class="inactive"></a>' +
+                                '</div>'
+                            );
+
+                            done();
+                        } catch (e) {
+                            done(e);
+                        }
+                    },
+                    () => done(new Error('Route not found'))
+                );
+            });
         });
     });
 });
