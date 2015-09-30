@@ -4,7 +4,7 @@ import jsdom from 'mocha-jsdom';
 import { createStore, combineReducers, compose } from 'redux';
 import { createMemoryHistory } from 'history';
 import createRoutex from '../../src/createRoutex.js';
-import React, { Component } from 'react';
+import React  from 'react';
 import { Provider } from 'react-redux';
 import { Link } from '../../src/react';
 import { renderToStaticMarkup } from 'react-dom/server';
