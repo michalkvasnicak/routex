@@ -8,7 +8,7 @@ export default function createLink(React, connect) {
         static propTypes = {
             to: PropTypes.string.isRequired,
             query: PropTypes.object,
-            children: PropTypes.oneOf([PropTypes.element, PropTypes.array]),
+            children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
             stateProps: PropTypes.shape({
                 active: PropTypes.object.isRequired,
                 inactive: PropTypes.object.isRequired
