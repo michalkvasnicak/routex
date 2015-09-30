@@ -148,9 +148,12 @@ router.run('/where-you-want-to-go', { /* query params object */});
         - `reducer: { router: Function }`
         -   - object used in combineReducers  
 - `<View /> component`: use it where you want to render routes (needs `store` in context)
-- `<Link to="path" query={{}} /> component`: use it where you want `<a>` to route (needs `store` in context)
+- `<Link to="path" query={{}} stateProps={{}} /> component`: use it where you want `<a>` to route (needs `store` in context)
     - `to: string` - path
     - `query: object` - query string params
+    - `stateProps: object`
+        - `active: object` - properties assigned to `<a>` if `href` is active (matched)
+        - `inactive: object` - properties assigned to `<a>` if `href` is inactive (not matched)
 - `actions.transitionTo(path: string, query: object)`
     - creates action which will routex try to transition to
     - `path: string` - path without query string

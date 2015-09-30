@@ -5,9 +5,10 @@ import { createStore, combineReducers, compose } from 'redux';
 import { createMemoryHistory } from 'history';
 import createRoutex from '../../src/createRoutex.js';
 import React, { Component } from 'react';
-import TestUtils from 'react-addons-test-utils';
 import { Provider } from 'react-redux';
 import { Link } from '../../src/react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { transitionTo } from '../../src/actions';
 
 describe('React', () => {
     describe('Link', () => {
@@ -16,38 +17,72 @@ describe('React', () => {
         let store;
 
         beforeEach(() => {
-            const routex = createRoutex([], createMemoryHistory());
-            store = compose(routex.store)(createStore)(combineReducers(routex.reducer));
+            const routex = createRoutex([{
+                path: '/path/:id',
+                component: 'a'
+            }], createMemoryHistory());
+
+            store = compose(
+                routex.store
+            )(createStore)(
+                combineReducers(routex.reducer)
+            );
         });
 
         it('renders anchor with simple path', function() {
-            const tree = TestUtils.renderIntoDocument(
+            const tree = renderToStaticMarkup(
                 <Provider store={store}>
                     <Link to="/path/123" />
                 </Provider>
             );
 
-            const link = TestUtils.findRenderedComponentWithType(tree, Link);
-
-            expect(link.render().props.href).to.be.equal('/path/123');
+            expect(tree).to.be.equal('<a href="/path/123"></a>');
         });
 
         it('renders anchor with href and query string', function() {
-            class Container extends Component {
-                render() {
-                    return (
-                        <Provider store={store}>
-                            <Link to="/path/123" query={{ test: 1, name: 'Fero' }} />
-                        </Provider>
-                    );
-                }
-            }
+            const tree = renderToStaticMarkup(
+                <Provider store={store}>
+                    <Link to="/path/123" query={{ test: 1, name: 'Fero' }} />
+                </Provider>
+            );
 
-            const tree = TestUtils.renderIntoDocument(<Container />);
+            expect(tree).to.be.equal('<a href="/path/123?test=1&amp;name=Fero"></a>');
+        });
 
-            const link = TestUtils.findRenderedComponentWithType(tree, Link);
+        it('adds props from stateProps by current state', function(done) {
+            const stateProps = {
+                active: { className: 'active' },
+                inactive: { className: 'inactive' }
+            };
 
-            expect(link.render().props.href).to.be.equal('/path/123?test=1&name=Fero');
+            store
+                .dispatch(transitionTo('/path/123'))
+                .then(
+                    () => {
+                        try {
+                            const tree = renderToStaticMarkup(
+                                <Provider store={store}>
+                                    <div>
+                                        <Link to="/path/123" stateProps={stateProps} />
+                                        <Link to="/path/12" stateProps={stateProps} />
+                                    </div>
+                                </Provider>
+                            );
+
+                            expect(tree).to.be.equal(
+                                '<div>' +
+                                '<a href="/path/123" class="active"></a>' +
+                                '<a href="/path/12" class="inactive"></a>' +
+                                '</div>'
+                            );
+
+                            done();
+                        } catch (e) {
+                            done(e);
+                        }
+                    },
+                    () => done(new Error('Route not found'))
+                );
         });
     });
 });
