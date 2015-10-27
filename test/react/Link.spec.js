@@ -19,12 +19,14 @@ describe('React', () => {
         beforeEach(() => {
             const routex = createRoutex([
                 {
-                    path: '/path/:id/messages',
-                    component: 'a'
-                },
-                {
                     path: '/path/:id',
-                    component: 'b'
+                    component: 'b',
+                    children: [
+                        {
+                            path: 'messages',
+                            component: 'a'
+                        }
+                    ]
                 },
                 {
                     path: '/',
@@ -95,7 +97,7 @@ describe('React', () => {
                                 '<div>' +
                                 '<a href="/path/123" class="active"></a>' +
                                 '<a href="/path/12" class="inactive"></a>' +
-                                '<a href="/path/123/messages" class="active"></a>' +
+                                '<a href="/path/123/messages" class="inactive"></a>' +
                                 '</div>'
                             );
 
@@ -131,7 +133,7 @@ describe('React', () => {
 
                             expect(tree).to.be.equal(
                                 '<div>' +
-                                '<a href="/path/123" class="inactive"></a>' +
+                                '<a href="/path/123" class="active"></a>' +
                                 '<a href="/path/12" class="inactive"></a>' +
                                 '<a href="/path/123/messages" class="active"></a>' +
                                 '</div>'
