@@ -25,6 +25,20 @@ describe('React', () => {
                 {
                     path: '/path/:id',
                     component: 'b'
+                },
+                {
+                    path: '/',
+                    component: 'index',
+                    children: [
+                        {
+                            path: '/',
+                            component: 'nested-index'
+                        },
+                        {
+                            path: '/:id',
+                            component: 'nested-var-index'
+                        }
+                    ]
                 }
             ], createMemoryHistory());
 
@@ -168,6 +182,44 @@ describe('React', () => {
                     },
                     () => done(new Error('Route not found'))
                 );
+            });
+
+            it('nested routes', function(done) {
+                const stateProps = {
+                    active: { className: 'active' },
+                    inactive: { className: 'inactive' }
+                };
+
+                store
+                    .dispatch(transitionTo('/haha'))
+                    .then(
+                        () => {
+                            try {
+                                const tree = renderToStaticMarkup(
+                                    <Provider store={store}>
+                                        <div>
+                                            <Link to="/" stateProps={stateProps} />
+                                            <Link to="/path/123" stateProps={stateProps} />
+                                            <Link to="/haha" stateProps={stateProps} />
+                                        </div>
+                                    </Provider>
+                                );
+
+                                expect(tree).to.be.equal(
+                                    '<div>' +
+                                    '<a href="/" class="active"></a>' +
+                                    '<a href="/path/123" class="inactive"></a>' +
+                                    '<a href="/haha" class="active"></a>' +
+                                    '</div>'
+                                );
+
+                                done();
+                            } catch (e) {
+                                done(e);
+                            }
+                        },
+                        () => done(new Error('Route not found'))
+                    );
             });
         });
     });

@@ -35,6 +35,8 @@ export default function createLink(React, connect) {
                 if (!matches) {
                     if (href.length > route.pathname.length) {
                         matches = (new RegExp(`^${route.pathname}(/.*)?$`)).test(href);
+                    } else if (href === '/') {
+                        matches = true;
                     } else {
                         matches = (new RegExp(`^(${href}|${href}/.*)$`)).test(route.pathname);
                     }
