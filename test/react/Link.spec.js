@@ -131,7 +131,7 @@ describe('React', () => {
 
                             expect(tree).to.be.equal(
                                 '<div>' +
-                                '<a href="/path/123" class="active"></a>' +
+                                '<a href="/path/123" class="inactive"></a>' +
                                 '<a href="/path/12" class="inactive"></a>' +
                                 '<a href="/path/123/messages" class="active"></a>' +
                                 '</div>'
