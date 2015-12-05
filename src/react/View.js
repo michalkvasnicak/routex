@@ -2,20 +2,6 @@ export default function createView(React, connect) {
     const { Component, PropTypes, isValidElement } = React;
 
     class View extends Component {
-        static propTypes = {
-            state: PropTypes.oneOf(['INITIAL', 'TRANSITIONING', 'TRANSITIONED']).isRequired,
-            route: PropTypes.shape({
-                pathname: PropTypes.string.isRequired,
-                query: PropTypes.object.isRequired,
-                vars: PropTypes.object.isRequired,
-                components: PropTypes.array.isRequired
-            })
-        };
-
-        static contextTypes = {
-            store: PropTypes.object.isRequired
-        };
-
         render() {
             const { state, route, ...props } = this.props;
 
@@ -35,6 +21,19 @@ export default function createView(React, connect) {
         }
     }
 
+    View.propTypes = {
+        state: PropTypes.oneOf(['INITIAL', 'TRANSITIONING', 'TRANSITIONED']).isRequired,
+        route: PropTypes.shape({
+            pathname: PropTypes.string.isRequired,
+            query: PropTypes.object.isRequired,
+            vars: PropTypes.object.isRequired,
+            components: PropTypes.array.isRequired
+        })
+    };
+
+    View.contextTypes = {
+        store: PropTypes.object.isRequired
+    };
+
     return connect((state) => state.router)(View);
 }
-

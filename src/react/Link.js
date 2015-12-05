@@ -5,32 +5,12 @@ export default function createLink(React, connect) {
     const { Component, PropTypes } = React;
 
     class Link extends Component {
-        static propTypes = {
-            to: PropTypes.string.isRequired,
-            query: PropTypes.object,
-            children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
-            stateProps: PropTypes.shape({
-                active: PropTypes.object,
-                inactive: PropTypes.object
-            }),
-            router: PropTypes.object.isRequired
-        };
-
-        static contextTypes = {
-            store: PropTypes.shape({
-                dispatch: PropTypes.func.isRequired,
-                router: PropTypes.instanceOf(Router).isRequired
-            }).isRequired
-        };
-
         constructor() {
             super();
 
             this.state = {
                 active: false
             };
-
-            //this.isActive = this.isActive.bind(this);
         }
 
         componentWillMount() {
@@ -41,25 +21,14 @@ export default function createLink(React, connect) {
             this.isActive();
         }
 
-        render() {
-            const { to, query } = this.props;
-            let { stateProps: stateProps = {}, ...props } = this.props;
-            const href = this.context.store.router.createHref(to, query);
+        handleClick(e) {
+            e.preventDefault();
 
-            stateProps = stateProps[this.state.active ? 'active' : 'inactive'] || {};
-
-            props = {
-                ...props,
-                ...stateProps
-            };
-
-            return (
-                <a
-                    href={href}
-                    {...props}
-                    onClick={this.handleClick.bind(this)}>
-                    {this.props.children}
-                </a>
+            this.context.store.dispatch(
+                transitionTo(
+                    this.props.to,
+                    this.props.query
+                )
             );
         }
 
@@ -83,17 +52,46 @@ export default function createLink(React, connect) {
             }
         }
 
-        handleClick(e) {
-            e.preventDefault();
+        render() {
+            const { to, query } = this.props;
+            let { stateProps: stateProps = {}, ...props } = this.props;
+            const href = this.context.store.router.createHref(to, query);
 
-            this.context.store.dispatch(
-                transitionTo(
-                    this.props.to,
-                    this.props.query
-                )
+            stateProps = stateProps[this.state.active ? 'active' : 'inactive'] || {};
+
+            props = {
+                ...props,
+                ...stateProps
+            };
+
+            return (
+                <a
+                    href={href}
+                    {...props}
+                    onClick={this.handleClick.bind(this)}>
+                    {this.props.children}
+                </a>
             );
         }
     }
+
+    Link.propTypes = {
+        to: PropTypes.string.isRequired,
+        query: PropTypes.object,
+        children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
+        stateProps: PropTypes.shape({
+            active: PropTypes.object,
+            inactive: PropTypes.object
+        }),
+        router: PropTypes.object.isRequired
+    };
+
+    Link.contextTypes = {
+        store: PropTypes.shape({
+            dispatch: PropTypes.func.isRequired,
+            router: PropTypes.instanceOf(Router).isRequired
+        }).isRequired
+    };
 
     return connect(
         (state) => {

@@ -46,7 +46,7 @@ export function buildMatcher(pathPattern, basePath = '/') {
      * @returns {Function}
      */
     function createMatcher(pattern, eager) {
-        return function matcher(path):Object {
+        return function matcher(path) {
             const matched = path.match(new RegExp(`^${pattern}${eager ? '$' : '.*$'}`, 'i'));
 
             if (!matched || !matched.length) {
