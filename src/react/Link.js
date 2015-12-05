@@ -5,22 +5,6 @@ export default function createLink(React, connect) {
     const { Component, PropTypes } = React;
 
     class Link extends Component {
-        constructor() {
-            super();
-
-            this.state = {
-                active: false
-            };
-        }
-
-        componentWillMount() {
-            this.isActive();
-        }
-
-        componentWillReceiveProps() {
-            this.isActive();
-        }
-
         handleClick(e) {
             e.preventDefault();
 
@@ -32,37 +16,30 @@ export default function createLink(React, connect) {
             );
         }
 
-        isActive() {
-            const { router, stateProps, to, query } = this.props;
-            const { state, route } = router;
+        render() {
+            const { to, query, router } = this.props;
+            let { stateProps, ...props } = this.props;
             const href = this.context.store.router.createHref(to, query);
+            const { state, route } = router;
 
             if (state === 'TRANSITIONED' && stateProps && route) {
-                const matches = href === route.pathname;
+                let matches = href === route.pathname;
 
                 if (!matches) {
                     if (href === '/') {
-                        this.setState({ active: true });
+                        matches = true;
                     } else if (href.length < route.pathname.length) {
-                        this.setState({ active: (new RegExp(`^(${href}|${href}/.*)$`)).test(route.pathname) });
+                        matches = (new RegExp(`^(${href}|${href}/.*)$`)).test(route.pathname);
                     }
-                } else {
-                    this.setState({ active: true });
                 }
+
+                stateProps = stateProps[matches ? 'active' : 'inactive'] || {};
+
+                props = {
+                    ...props,
+                    ...stateProps
+                };
             }
-        }
-
-        render() {
-            const { to, query } = this.props;
-            let { stateProps: stateProps = {}, ...props } = this.props;
-            const href = this.context.store.router.createHref(to, query);
-
-            stateProps = stateProps[this.state.active ? 'active' : 'inactive'] || {};
-
-            props = {
-                ...props,
-                ...stateProps
-            };
 
             return (
                 <a
