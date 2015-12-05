@@ -120,6 +120,66 @@ describe('Route', () => {
             );
         });
 
+        it('resolves complex route with multiple variables', () => {
+            const onEnter = () => {};
+            const onLeave = () => {};
+            const eagerlyMatchedRoute = new Route('/:from-:to', '', [], onEnter, onLeave, 'a');
+
+            return eagerlyMatchedRoute.match('/10-11').then(
+                (match) => {
+                    expect(match).be.an('object');
+                    expect(match)
+                        .to.have.property('vars')
+                        .and.to.be.deep.equal({
+                            from: '10',
+                            to: '11'
+                        });
+                    expect(match)
+                        .to.have.property('onEnter')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal([onEnter]);
+                    expect(match)
+                        .to.have.property('onLeave')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal([onLeave]);
+                    expect(match)
+                        .to.have.property('components')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal(['a']);
+                }
+            );
+        });
+
+        it('resolves complex route with multiple variables (patterns)', () => {
+            const onEnter = () => {};
+            const onLeave = () => {};
+            const eagerlyMatchedRoute = new Route('/:from{[0-9]+}-:to{[a-z]+}', '', [], onEnter, onLeave, 'a');
+
+            return eagerlyMatchedRoute.match('/10-a').then(
+                (match) => {
+                    expect(match).be.an('object');
+                    expect(match)
+                        .to.have.property('vars')
+                        .and.to.be.deep.equal({
+                            from: '10',
+                            to: 'a'
+                        });
+                    expect(match)
+                        .to.have.property('onEnter')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal([onEnter]);
+                    expect(match)
+                        .to.have.property('onLeave')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal([onLeave]);
+                    expect(match)
+                        .to.have.property('components')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal(['a']);
+                }
+            );
+        });
+
         it('resolves route with async children', () => {
             const asyncRoutes = () => {
                 return Promise.resolve([

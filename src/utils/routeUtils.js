@@ -20,7 +20,7 @@ export function buildMatcher(pathPattern, basePath = '/') {
     pathRegexp = normalizeSlashes(basePath + '/' + pathPattern);
     pathRegexp = trimSlashesFromPathEnd(pathRegexp);
 
-    pathRegexp = pathRegexp.replace(/:([a-zA-Z]+)(\{(.+)})?/g, (match, variableName, _, variablePattern) => {
+    pathRegexp = pathRegexp.replace(/:([a-zA-Z]+)({([^:]+)})?/g, (match, variableName, _, variablePattern) => {
         if (variableNames.indexOf(variableName) !== -1) {
             throw Error(`Route parameter \`${variableName}\` is already defined.`);
         }
