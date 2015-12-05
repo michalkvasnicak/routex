@@ -12,7 +12,7 @@ describe('Router', () => {
                 expect(
                     () => new Router(routes)
                 ).to.throw(
-                    `Invariant Violation: Routes should be an array, ${typeof routes} given.`
+                    `Routes should be an array, ${typeof routes} given.`
                 );
             });
         });
@@ -22,7 +22,7 @@ describe('Router', () => {
                 expect(
                     () => new Router([], createMemoryHistory(), callback)
                 ).to.throw(
-                    `Invariant Violation: Router onTransition callback should be a function, ${typeof callback} given.`
+                    `Router onTransition callback should be a function, ${typeof callback} given.`
                 );
             });
         });

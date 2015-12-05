@@ -8,7 +8,7 @@ describe('Route', () => {
                 const type = typeof path;
 
                 expect(() => new Route(path)).to.throw(
-                    `Invariant Violation: Route path should be string, ${type} given.`
+                    `Route path should be string, ${type} given.`
                 );
             });
         });
@@ -18,7 +18,7 @@ describe('Route', () => {
                 const type = typeof path;
 
                 expect(() => new Route(path)).to.throw(
-                    `Invariant Violation: Route path should be string, ${type} given.`
+                    `Route path should be string, ${type} given.`
                 );
             });
         });
@@ -28,7 +28,7 @@ describe('Route', () => {
                 const type = typeof path;
 
                 expect(() => new Route('/', path)).to.throw(
-                    `Invariant Violation: Route base path should be string, ${type} given.`
+                    `Route base path should be string, ${type} given.`
                 );
             });
         });
@@ -38,20 +38,20 @@ describe('Route', () => {
                 const type = typeof children;
 
                 expect(() => new Route('/', '', children)).to.throw(
-                    `Invariant Violation: Route children should be an array or function, ${type} given.`
+                    `Route children should be an array or function, ${type} given.`
                 );
             });
         });
 
         it('throws if route onEnter handler is not an function', () => {
             expect(() => new Route('/', '', [], 'a')).to.throw(
-                `Invariant Violation: Route handler \`onEnter\` should be a function, string given.`
+                `Route handler \`onEnter\` should be a function, string given.`
             );
         });
 
         it('throws if route onLeave handler is not an function', () => {
             expect(() => new Route('/', '', [], () => {}, 'a')).to.throw(
-                `Invariant Violation: Route handler \`onLeave\` should be a function, string given.`
+                `Route handler \`onLeave\` should be a function, string given.`
             );
         });
     });
