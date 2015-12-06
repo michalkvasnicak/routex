@@ -5,6 +5,10 @@ export default function createLink(React, connect) {
     const { Component, PropTypes } = React;
 
     class Link extends Component {
+        shouldComponentUpdate(nextProps) {
+            return nextProps.router.state === 'TRANSITIONED';
+        }
+
         handleClick(e) {
             e.preventDefault();
 
