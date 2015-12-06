@@ -54,9 +54,19 @@ export function buildMatcher(pathPattern, basePath = '/') {
             }
 
             const vars = {};
+            let indexInMatch = 1;
 
             variableNames.forEach((name, index) => {
-                vars[name] = matched[index + 1];
+                const start = variablePatterns[index][0];
+                const end = variablePatterns[index].slice(-1);
+
+                if (start === '(' && end === ')') {
+                    vars[name] = matched[indexInMatch];
+                    indexInMatch += 2; // skip nested group
+                    return;
+                }
+
+                vars[name] = matched[indexInMatch++];
             });
 
             return {

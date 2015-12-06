@@ -180,6 +180,45 @@ describe('Route', () => {
             );
         });
 
+        it('resolves complex route with complex children', () => {
+            const onEnter = () => {};
+            const onLeave = () => {};
+            const children = [
+                {
+                    path: '/detail/:id{[a-zA-Z0-9]+}-:slug',
+                    component: 'b',
+                    onEnter,
+                    onLeave
+                }
+            ];
+            const eagerlyMatchedRoute = new Route('/:lang{(en|de)}', '', children, onEnter, onLeave, 'a');
+
+            return eagerlyMatchedRoute.match('/en/detail/565ee0d31709ae7b174eb8a1-test').then(
+                (match) => {
+                    expect(match).be.an('object');
+                    expect(match)
+                        .to.have.property('vars')
+                        .and.to.be.deep.equal({
+                            lang: 'en',
+                            id: '565ee0d31709ae7b174eb8a1',
+                            slug: 'test'
+                        });
+                    expect(match)
+                        .to.have.property('onEnter')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal([onEnter, onEnter]);
+                    expect(match)
+                        .to.have.property('onLeave')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal([onLeave, onLeave]);
+                    expect(match)
+                        .to.have.property('components')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal(['a', 'b']);
+                }
+            );
+        });
+
         it('resolves route with async children', () => {
             const asyncRoutes = () => {
                 return Promise.resolve([
