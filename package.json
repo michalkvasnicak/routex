@@ -25,7 +25,7 @@
     "build:umd:routex": "webpack src/index.js dist/routex.js && NODE_ENV=production webpack src/index.js dist/routex.min.js",
     "build:umd:react": "MODULENAME=react-routex webpack src/react/index.js dist/react-routex.js && NODE_ENV=production MODULE_NAME=react-routex webpack src/react/index.js dist/react-routex.min.js",
     "lint": "eslint -c .eslintrc src test",
-    "test": "mocha --compilers js:babel/register --recursive"
+    "test": "npm run lint && mocha --compilers js:babel/register --recursive"
   },
   "peerDependencies": {
     "history": "^1.3.0",
