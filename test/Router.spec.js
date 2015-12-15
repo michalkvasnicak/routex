@@ -493,6 +493,80 @@ describe('Router', () => {
                 }
             );
         });
+
+        it('resolves onEnter handlers in order', () => {
+            const onTransition = spy();
+            const onEnter1 = spy(() => new Promise(resolve => {
+                setTimeout(resolve, 150);
+            }));
+            const onEnter2 = spy(() => Promise.resolve());
+
+            const router = new Router(
+                [
+                    {
+                        path: 'a',
+                        component: 'dashboard',
+                        onEnter: onEnter1,
+                        children: [
+                            {
+                                path: 'b',
+                                component: 'newmessage',
+                                onEnter: onEnter2
+                            }
+                        ]
+                    }
+                ],
+                createMemoryHistory(),
+                onTransition
+            );
+
+            return router.run('/a/b').then(
+                (resolvedRoute) => {
+                    expect(router.currentRoute()).not.to.be.equal(null);
+                    expect(resolvedRoute).to.be.equal(router.currentRoute());
+                    expect(onEnter1.calledBefore(onEnter2)).to.be.equal(true);
+                }
+            );
+        });
+
+        it('resolves onLeave handlers in order', () => {
+            const onTransition = spy();
+            const onLeave1 = spy(() => new Promise(resolve => {
+                setTimeout(resolve, 150);
+            }));
+            const onLeave2 = spy(() => Promise.resolve());
+
+            const router = new Router(
+                [
+                    {
+                        path: '/',
+                        component: 'a'
+                    },
+                    {
+                        path: 'a',
+                        component: 'dashboard',
+                        onLeave: onLeave1,
+                        children: [
+                            {
+                                path: 'b',
+                                component: 'newmessage',
+                                onLeave: onLeave2
+                            }
+                        ]
+                    }
+                ],
+                createMemoryHistory(),
+                onTransition
+            );
+
+            return router.run('/a/b').then(
+                () => {
+                    return router.run('/').then(() => {
+                        expect(onLeave2.calledBefore(onLeave1)).to.be.equal(true);
+                    });
+                }
+            );
+        });
     });
 
     describe('handler wrapping', () => {

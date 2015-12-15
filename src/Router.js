@@ -30,6 +30,25 @@ function parseQuery(search) {
     return {};
 }
 
+/**
+ * Reduce promises
+ *
+ * @param {Function} fn
+ * @param {*} start
+ * @returns {Function}
+ */
+function reduce(fn, start) {
+    return (val) => {
+        const values = Array.isArray(val) ? val : [val];
+
+        return values.reduce((promise, curr) => {
+            return promise.then((prev) => {
+                return fn(prev, curr);
+            });
+        }, Promise.resolve(start));
+    };
+}
+
 function instantiateRoutes(routes) {
     return routes.map((definition) => {
         const normalized = normalizeRouteDefinition(definition);
@@ -239,11 +258,31 @@ export default class Router {
                         return _resolve();
                     }
 
-                    return Promise.all(
-                        route[handlers].map(
-                            (handler) => runWrappedHandler(handler, args, this.handlerWrappers[handlers])
-                        )
-                    ).then(_resolve, _reject);
+                    // if running onEnter, run them from parent to child
+                    // if onLeave, run them from child to parent
+
+                    // run
+                    return reduce(
+                        (acc, current) => {
+                            try {
+                                const result = runWrappedHandler(current, args, this.handlerWrappers[handlers]);
+
+                                if (result && typeof result.then === 'function') {
+                                    return result.then(res => {
+                                        acc.push(res);
+
+                                        return acc;
+                                    });
+                                }
+
+                                acc.push(result);
+
+                                return Promise.resolve(acc);
+                            } catch (e) {
+                                return Promise.reject(e);
+                            }
+                        }, []
+                    )(handlers === 'onEnter' ? route[handlers] : route[handlers].reverse()).then(_resolve, _reject);
                 });
             };
 
@@ -300,7 +339,6 @@ export default class Router {
                 this._callEventListeners('changeStart', this._currentRoute, resolvedRoute, this);
 
                 // call on leave in order (so we can cancel transition)
-                // todo call transition hooks in order?
                 runRouteHandlers('onLeave', this._currentRoute, resolvedRoute, this).then(
                     () => runRouteHandlers('onEnter', resolvedRoute, this._currentRoute, resolvedRoute, this).then(
                         () => resolveComponents(resolvedRoute.components).then(
