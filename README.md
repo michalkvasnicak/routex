@@ -183,8 +183,3 @@ router.run('/where-you-want-to-go', { /* query params object */});
         - signature is same as in the onEnter
         - function used to determine if router can transition from this route (can be used as guard, ...) to a new route
         - **this function is called only on `transitionTo action` and not on popState event**
-
-
-## TODO
-
-- document lifecycle
