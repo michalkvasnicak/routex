@@ -1,4 +1,5 @@
 import { transitionTo } from '../actions';
+import { createHref } from '../utils/urlUtils';
 import Router from '../Router';
 
 export default function createLink(React, connect) {
@@ -23,7 +24,7 @@ export default function createLink(React, connect) {
         render() {
             const { to, query, router } = this.props;
             let { stateProps, ...props } = this.props;
-            const href = this.context.store.router.createHref(to, query);
+            const href = createHref(to, query);
             const { state, route } = router;
 
             if (state === 'TRANSITIONED' && stateProps && route) {

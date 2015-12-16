@@ -102,6 +102,12 @@ describe('Route', () => {
                 (match) => {
                     expect(match).be.an('object');
                     expect(match)
+                        .to.have.property('pathname')
+                        .and.to.be.equal('/');
+                    expect(match)
+                        .to.have.property('fullPath')
+                        .and.to.be.equal('/');
+                    expect(match)
                         .to.have.property('vars')
                         .and.to.be.deep.equal({});
                     expect(match)
@@ -135,6 +141,12 @@ describe('Route', () => {
                             to: '11'
                         });
                     expect(match)
+                        .to.have.property('pathname')
+                        .and.to.be.equal('/10-11');
+                    expect(match)
+                        .to.have.property('fullPath')
+                        .and.to.be.equal('/10-11');
+                    expect(match)
                         .to.have.property('onEnter')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal([onEnter]);
@@ -164,6 +176,12 @@ describe('Route', () => {
                             from: '10',
                             to: 'a'
                         });
+                    expect(match)
+                        .to.have.property('pathname')
+                        .and.to.be.equal('/10-a');
+                    expect(match)
+                        .to.have.property('fullPath')
+                        .and.to.be.equal('/10-a');
                     expect(match)
                         .to.have.property('onEnter')
                         .and.to.be.an('array')
@@ -204,6 +222,12 @@ describe('Route', () => {
                             slug: 'test'
                         });
                     expect(match)
+                        .to.have.property('pathname')
+                        .and.to.be.equal('/en/detail/565ee0d31709ae7b174eb8a1-test');
+                    expect(match)
+                        .to.have.property('fullPath')
+                        .and.to.be.equal('/en/detail/565ee0d31709ae7b174eb8a1-test');
+                    expect(match)
                         .to.have.property('onEnter')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal([onEnter, onEnter]);
@@ -233,6 +257,12 @@ describe('Route', () => {
             return route.match('/').then(
                 (match) => {
                     expect(match).be.an('object');
+                    expect(match)
+                        .to.have.property('pathname')
+                        .and.to.be.equal('/');
+                    expect(match)
+                        .to.have.property('fullPath')
+                        .and.to.be.equal('/');
                     expect(match)
                         .to.have.property('vars')
                         .and.to.be.deep.equal({});
@@ -264,6 +294,49 @@ describe('Route', () => {
             return route.match('/').then(
                 (match) => {
                     expect(match).be.an('object');
+                    expect(match)
+                        .to.have.property('pathname')
+                        .and.to.be.equal('/');
+                    expect(match)
+                        .to.have.property('fullPath')
+                        .and.to.be.equal('/');
+                    expect(match)
+                        .to.have.property('vars')
+                        .and.to.be.deep.equal({});
+                    expect(match)
+                        .to.have.property('onEnter')
+                        .and.to.be.an('array')
+                        .and.have.length(2);
+                    expect(match)
+                        .to.have.property('onLeave')
+                        .and.to.be.an('array')
+                        .and.have.length(2);
+                    expect(match)
+                        .to.have.property('components')
+                        .and.to.be.an('array')
+                        .and.to.be.deep.equal(['a', 'b']);
+                }
+            );
+        });
+
+        it('matches route with query params', () => {
+            const routes = [
+                {
+                    path: '/',
+                    component: 'b'
+                }
+            ];
+            const route = new Route('/', '', routes, () => {}, () => {}, 'a');
+
+            return route.match('/', { a: 1, b: 2 }).then(
+                (match) => {
+                    expect(match).be.an('object');
+                    expect(match)
+                        .to.have.property('pathname')
+                        .and.to.be.equal('/');
+                    expect(match)
+                        .to.have.property('fullPath')
+                        .and.to.be.equal('/?a=1&b=2');
                     expect(match)
                         .to.have.property('vars')
                         .and.to.be.deep.equal({});

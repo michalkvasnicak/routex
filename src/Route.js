@@ -5,6 +5,7 @@ import { normalizeSlashes } from './utils/stringUtils';
 import {
     NoRoutesToResolveError
 } from './errors';
+import { createHref } from './utils/urlUtils';
 
 /**
  * Resolves async routes and returns Promise which resolves to normalized definitions
@@ -166,6 +167,7 @@ export default class Route {
                         pathname: path,
                         vars,
                         query,
+                        fullPath: createHref(path, query),
                         components: [this.component],
                         onEnter: [this.onEnter],
                         onLeave: [this.onLeave]
@@ -204,6 +206,7 @@ export default class Route {
                                         pathname: path,
                                         vars,
                                         query,
+                                        fullPath: createHref(path, query),
                                         components: [this.component, ...components],
                                         onEnter: [this.onEnter, ...onEnter],
                                         onLeave: [this.onLeave, ...onLeave]

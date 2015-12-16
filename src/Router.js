@@ -4,31 +4,7 @@ import { resolveWithFirstMatched } from './utils/routerUtils';
 import { Actions } from 'history';
 import invariant from 'invariant';
 import { RouteNotFoundError } from './errors';
-import { parse as _parseQuery, stringify as _stringifyQuery } from 'qs';
-
-/**
- * Stringifies query
- *
- * @param {Object.<String, *>} query
- * @returns {String}
- */
-function stringifyQuery(query = {}) {
-    return _stringifyQuery(query, { arrayFormat: 'brackets' });
-}
-
-/**
- * Parses query
- *
- * @param {String} search
- * @returns {Object.<String, *>}
- */
-function parseQuery(search) {
-    if (/^\?/.test(search)) {
-        return _parseQuery(search.substring(1));
-    }
-
-    return {};
-}
+import { createHref, parseQuery } from './utils/urlUtils';
 
 /**
  * Reduce promises
@@ -104,31 +80,6 @@ export default class Router {
         this._currentRoute = null;
     }
 
-    /**
-     * Creates href
-     *
-     * @param {String} path
-     * @param {Object.<String, *>} query
-     * @returns {String}
-     */
-    createHref(path, query = {}) {
-        // if path contains ? strip it
-        const match = path.match(/^([^?]*)(\?.*)?$/);
-
-        let url = `${match[1]}`;
-        let queryParams = match[2] ? parseQuery(match[2]) : {};
-
-        // merge with query
-        queryParams = { ...queryParams, ...query };
-
-        // stringify params only if query contains something
-        if (Object.keys(queryParams).length) {
-            url += `?${stringifyQuery(queryParams)}`;
-        }
-
-        return url;
-    }
-
     listen() {
         // listen to popState event
         this.history.listen(this._handleChange.bind(this));
@@ -151,7 +102,7 @@ export default class Router {
                     if (!location.state) {
                         this.history.replaceState(
                             newRoute,
-                            this.createHref(location.pathname, parseQuery(location.search))
+                            createHref(location.pathname, parseQuery(location.search))
                         );
                     }
 
@@ -329,7 +280,7 @@ export default class Router {
                 this._currentRoute = resolvedRoute;
                 this._callEventListeners('changeSuccess', resolvedRoute);
 
-                this.history.pushState(resolvedRoute, this.createHref(path, query));
+                this.history.pushState(resolvedRoute, createHref(path, query));
 
                 this.onTransition(null, resolvedRoute);
                 resolve(resolvedRoute);
