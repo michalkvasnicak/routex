@@ -193,128 +193,129 @@ export default class Router {
      * @returns {Promise}
      */
     run(path, query = {}) {
-        return new Promise((resolve, reject) => {
-            // runs route handler bound to given arguments (from our code)
-            // wrapper can call it with additional parameters
-            const runWrappedHandler = (originalHandler, originalProps, wrapper) => {
-                return wrapper(
-                    originalHandler.bind(this, ...originalProps)
-                );
-            };
+        // runs route handler bound to given arguments (from our code)
+        // wrapper can call it with additional parameters
+        const runWrappedHandler = (originalHandler, originalProps, wrapper) => {
+            return wrapper(
+                originalHandler.bind(this, ...originalProps)
+            );
+        };
 
-            const runRouteHandlers = (handlers, route, ...args) => {
-                return new Promise((_resolve, _reject) => {
-                    // resolve if current route is not defined (initial load for onLeave?)
-                    if (!route) {
-                        return _resolve();
-                    }
-
-                    // if running onEnter, run them from parent to child
-                    // if onLeave, run them from child to parent
-
-                    // run
-                    return reduce(
-                        (acc, current) => {
-                            try {
-                                const result = runWrappedHandler(current, args, this.handlerWrappers[handlers]);
-
-                                if (result && typeof result.then === 'function') {
-                                    return result.then(res => {
-                                        acc.push(res);
-
-                                        return acc;
-                                    });
-                                }
-
-                                acc.push(result);
-
-                                return Promise.resolve(acc);
-                            } catch (e) {
-                                return Promise.reject(e);
-                            }
-                        }, []
-                    )(handlers === 'onEnter' ? route[handlers] : route[handlers].reverse()).then(_resolve, _reject);
-                });
-            };
-
-            const rejectTransition = (reason) => {
-                const err = Error(reason);
-
-                return (parentErr) => {
-                    const e = parentErr || err;
-                    this._callEventListeners('changeFail', e, this._currentRoute, this);
-                    this.onTransition(e);
-                    reject(e);
-                };
-            };
-
-            const resolveComponents = (components) => {
-                if (!Array.isArray(components)) {
-                    return Promise.resolve([]);
+        const runRouteHandlers = (handlers, route, ...args) => {
+            return new Promise((_resolve, _reject) => {
+                // resolve if current route is not defined (initial load for onLeave?)
+                if (!route) {
+                    return _resolve();
                 }
 
-                // go through components and if function, call it
-                return Promise.all(
-                    components.map((component) => {
-                        if (typeof component === 'function') {
-                            try {
-                                // if is react class, it throws error
-                                const result = component();
+                // if running onEnter, run them from parent to child
+                // if onLeave, run them from child to parent
 
-                                if (typeof result.then === 'function') {
-                                    return result;
-                                }
+                // run
+                return reduce(
+                    (acc, current) => {
+                        try {
+                            const result = runWrappedHandler(current, args, this.handlerWrappers[handlers]);
 
-                                return component;
-                            } catch (e) {
-                                return component;
+                            if (result && typeof result.then === 'function') {
+                                return result.then(res => {
+                                    acc.push(res);
+
+                                    return acc;
+                                });
                             }
+
+                            acc.push(result);
+
+                            return Promise.resolve(acc);
+                        } catch (e) {
+                            return Promise.reject(e);
                         }
+                    }, []
+                )(handlers === 'onEnter' ? route[handlers] : route[handlers].reverse()).then(_resolve, _reject);
+            });
+        };
 
-                        return component;
-                    })
-                );
+        const rejectTransition = (reason) => {
+            const err = new Error(reason);
+
+            return (parentErr) => {
+                const e = parentErr || err;
+                this._callEventListeners('changeFail', e, this._currentRoute, this);
+                this.onTransition(e);
+
+                throw err;
             };
+        };
 
-            const finishRun = (resolvedRoute) => {
-                this._currentRoute = resolvedRoute;
-                this._callEventListeners('changeSuccess', resolvedRoute);
+        const resolveComponents = (components) => {
+            if (!Array.isArray(components)) {
+                return Promise.resolve([]);
+            }
 
-                this.history.pushState(resolvedRoute, createHref(path, query));
+            // go through components and if function, call it
+            return Promise.all(
+                components.map((component) => {
+                    if (typeof component === 'function') {
+                        try {
+                            // if is react class, it throws error
+                            const result = component();
 
-                this.onTransition(null, resolvedRoute);
-                resolve(resolvedRoute);
-            };
+                            if (typeof result.then === 'function') {
+                                return result;
+                            }
 
-            const runResolvedRoute = (resolvedRoute) => {
-                this._callEventListeners('changeStart', this._currentRoute, resolvedRoute, this);
+                            return component;
+                        } catch (e) {
+                            return component;
+                        }
+                    }
 
-                // call on leave in order (so we can cancel transition)
-                runRouteHandlers('onLeave', this._currentRoute, resolvedRoute, this).then(
-                    () => runRouteHandlers('onEnter', resolvedRoute, this._currentRoute, resolvedRoute, this).then(
-                        () => resolveComponents(resolvedRoute.components).then(
-                            (components) => {
-                                finishRun({ ...resolvedRoute, components });
-                            },
-                            rejectTransition('Route components cannot be resolved')
-                        ),
-                        rejectTransition('Route onEnter handlers are rejected.')
-                    ),
-                    rejectTransition('Current route onLeave handlers are rejected.')
-                );
-            };
-
-            const notFound = () => {
-                const err = new RouteNotFoundError('Route not found');
-                this._callEventListeners('notFound', path, query);
-                this.onTransition(err);
-                reject(err);
-            };
-
-            return resolveWithFirstMatched(this.routes, path, query).then(
-                runResolvedRoute,
-                notFound
+                    return component;
+                })
             );
-        });
+        };
+
+        const finishRun = (resolvedRoute) => {
+            this._currentRoute = resolvedRoute;
+            this._callEventListeners('changeSuccess', resolvedRoute);
+
+            this.history.pushState(resolvedRoute, createHref(path, query));
+
+            this.onTransition(null, resolvedRoute);
+
+            return resolvedRoute;
+        };
+
+        const runResolvedRoute = (resolvedRoute) => {
+            this._callEventListeners('changeStart', this._currentRoute, resolvedRoute, this);
+
+            // call on leave in order (so we can cancel transition)
+            return runRouteHandlers('onLeave', this._currentRoute, resolvedRoute, this).then(
+                () => runRouteHandlers('onEnter', resolvedRoute, this._currentRoute, resolvedRoute, this).then(
+                    () => resolveComponents(resolvedRoute.components).then(
+                        (components) => {
+                            return finishRun({ ...resolvedRoute, components });
+                        },
+                        rejectTransition('Route components cannot be resolved')
+                    ),
+                    rejectTransition('Route onEnter handlers are rejected.')
+                ),
+                rejectTransition('Current route onLeave handlers are rejected.')
+            );
+        };
+
+        const notFound = () => {
+            const err = new RouteNotFoundError('Route not found');
+            this._callEventListeners('notFound', path, query);
+            this.onTransition(err);
+
+            throw err;
+        };
+
+        return resolveWithFirstMatched(this.routes, path, query).then(
+            runResolvedRoute,
+            notFound
+        );
     }
 }
