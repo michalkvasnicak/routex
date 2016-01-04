@@ -178,3 +178,31 @@ export function runRouteHandlers(handlers, route, wrappers = [], ...args) {
     );
 }
 /* eslint-enable consistent-return */
+
+export function resolveComponents(components) {
+    if (!Array.isArray(components)) {
+        return Promise.resolve([]);
+    }
+
+    // go through components and if function, call it
+    return Promise.all(
+        components.map((component) => {
+            if (typeof component === 'function') {
+                try {
+                    // if is react class, it throws error
+                    const result = component();
+
+                    if (typeof result.then === 'function') {
+                        return result;
+                    }
+
+                    return component;
+                } catch (e) {
+                    return component;
+                }
+            }
+
+            return component;
+        })
+    );
+}

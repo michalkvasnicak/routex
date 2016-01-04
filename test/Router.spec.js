@@ -51,7 +51,7 @@ describe('Router', () => {
                             expect(history.replaceState.getCall(0).args[0]).to.be.equal(resolvedRoute);
                             expect(history.replaceState.getCall(0).args[1]).to.be.equal('/');
 
-                            expect(changeStart.called).to.be.equal(false);
+                            expect(changeStart.called).to.be.equal(true);
                             expect(changeSuccess.calledOnce).to.be.equal(true);
 
                             done();
