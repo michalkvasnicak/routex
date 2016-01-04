@@ -2,6 +2,25 @@ import { normalizeSlashes, trimSlashesFromPathEnd } from './stringUtils';
 import invariant from 'invariant';
 
 /**
+ * Reduce promises
+ *
+ * @param {Function} fn
+ * @param {*} start
+ * @returns {Function}
+ */
+function reduce(fn, start) {
+    return (val) => {
+        const values = Array.isArray(val) ? val : [val];
+
+        return values.reduce((promise, curr) => {
+            return promise.then((prev) => {
+                return fn(prev, curr);
+            });
+        }, Promise.resolve(start));
+    };
+}
+
+/**
  * Builds path matcher
  *
  * @param {string} pathPattern
@@ -112,3 +131,50 @@ export function normalizeRouteDefinition(definition) {
         component: definition.component || null
     };
 }
+
+/* eslint-disable consistent-return */
+export function runRouteHandlers(handlers, route, wrappers = [], ...args) {
+    // if current route is not defined, resolve immediately
+    // this will prevent calling onLeave on initial load, because we don't have previous route
+    if (!route) {
+        return Promise.resolve();
+    }
+
+    // runs route handler bound to given arguments (from our code)
+    // wrapper can call it with additional parameters
+    const runWrappedHandler = (originalHandler, originalProps, wrapper) => {
+        return wrapper((...fromWrapper) => originalHandler(...originalProps, ...fromWrapper));
+    };
+
+    // create handlers runner
+    const composedHandlers = reduce(
+        (acc, current) => {
+            try {
+                const result = runWrappedHandler(current, args, wrappers[handlers]);
+
+                if (result && typeof result.then === 'function') {
+                    return result.then(res => {
+                        acc.push(res);
+
+                        return acc;
+                    });
+                }
+
+                acc.push(result);
+
+                return Promise.resolve(acc);
+            } catch (e) {
+                return Promise.reject(e);
+            }
+        }, []
+    );
+
+    const routeHandlers = route[handlers];
+
+    // if running onEnter, run handlers from parent to child
+    // if onLeave, run them from child to parent
+    return composedHandlers(
+        handlers === 'onEnter' ? routeHandlers : routeHandlers.reverse()
+    );
+}
+/* eslint-enable consistent-return */

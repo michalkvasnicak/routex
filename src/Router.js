@@ -1,29 +1,10 @@
 import Route from './Route';
-import { normalizeRouteDefinition } from './utils/routeUtils';
+import { normalizeRouteDefinition, runRouteHandlers } from './utils/routeUtils';
 import { resolveWithFirstMatched } from './utils/routerUtils';
 import { Actions } from 'history';
 import invariant from 'invariant';
 import { RouteNotFoundError } from './errors';
 import { createHref, parseQuery } from './utils/urlUtils';
-
-/**
- * Reduce promises
- *
- * @param {Function} fn
- * @param {*} start
- * @returns {Function}
- */
-function reduce(fn, start) {
-    return (val) => {
-        const values = Array.isArray(val) ? val : [val];
-
-        return values.reduce((promise, curr) => {
-            return promise.then((prev) => {
-                return fn(prev, curr);
-            });
-        }, Promise.resolve(start));
-    };
-}
 
 function instantiateRoutes(routes) {
     return routes.map((definition) => {
@@ -96,7 +77,6 @@ export default class Router {
             resolveWithFirstMatched(this.routes, location.pathname, parseQuery(location.search)).then(
                 (newRoute) => {
                     this._currentRoute = newRoute;
-                    this._callEventListeners('changeSuccess', newRoute);
 
                     // replace state with new route if is not set (initial load)
                     if (!location.state) {
@@ -105,6 +85,8 @@ export default class Router {
                             createHref(location.pathname, parseQuery(location.search))
                         );
                     }
+
+                    this._callEventListeners('changeSuccess', newRoute);
 
                     // do nothing about state because it is already store
                     this.onTransition(null, newRoute);
@@ -193,49 +175,6 @@ export default class Router {
      * @returns {Promise}
      */
     run(path, query = {}) {
-        // runs route handler bound to given arguments (from our code)
-        // wrapper can call it with additional parameters
-        const runWrappedHandler = (originalHandler, originalProps, wrapper) => {
-            return wrapper(
-                originalHandler.bind(this, ...originalProps)
-            );
-        };
-
-        const runRouteHandlers = (handlers, route, ...args) => {
-            return new Promise((_resolve, _reject) => {
-                // resolve if current route is not defined (initial load for onLeave?)
-                if (!route) {
-                    return _resolve();
-                }
-
-                // if running onEnter, run them from parent to child
-                // if onLeave, run them from child to parent
-
-                // run
-                return reduce(
-                    (acc, current) => {
-                        try {
-                            const result = runWrappedHandler(current, args, this.handlerWrappers[handlers]);
-
-                            if (result && typeof result.then === 'function') {
-                                return result.then(res => {
-                                    acc.push(res);
-
-                                    return acc;
-                                });
-                            }
-
-                            acc.push(result);
-
-                            return Promise.resolve(acc);
-                        } catch (e) {
-                            return Promise.reject(e);
-                        }
-                    }, []
-                )(handlers === 'onEnter' ? route[handlers] : route[handlers].reverse()).then(_resolve, _reject);
-            });
-        };
-
         const rejectTransition = (reason) => {
             const err = new Error(reason);
 
@@ -288,11 +227,14 @@ export default class Router {
         };
 
         const runResolvedRoute = (resolvedRoute) => {
-            this._callEventListeners('changeStart', this._currentRoute, resolvedRoute, this);
+            const currentRoute = this._currentRoute;
+            this._callEventListeners('changeStart', currentRoute, resolvedRoute, this);
+
+            const handlerWrappers = this.handlerWrappers;
 
             // call on leave in order (so we can cancel transition)
-            return runRouteHandlers('onLeave', this._currentRoute, resolvedRoute, this).then(
-                () => runRouteHandlers('onEnter', resolvedRoute, this._currentRoute, resolvedRoute, this).then(
+            return runRouteHandlers('onLeave', currentRoute, handlerWrappers, resolvedRoute, this).then(
+                () => runRouteHandlers('onEnter', resolvedRoute, handlerWrappers, currentRoute, resolvedRoute, this).then(
                     () => resolveComponents(resolvedRoute.components).then(
                         (components) => {
                             return finishRun({ ...resolvedRoute, components });
