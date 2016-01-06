@@ -152,7 +152,7 @@ router.run('/where-you-want-to-go', { /* query params object */});
         - resolves route for given pathname
     - **`listen()`** - starts listening to history pop events (and will fire POPstate event immediately after `listen()` call
 
-- **`createRoutex(routes: array, history: History, onTransition(error, resolvedRoute): Function, resolveOnLoad: Boolean):{{ store: Function, reducer: { router: Function } }}`**
+- **`createRoutex(routes, history, onTransition, resolveOnLoad)`**
     - **`routes`** (`RouteObject[]`) array of RouteObject (see below)
     - **`history`** (`HistoryObject`) history object (see below)
     - **`onTransition`** (`Function(error: ?Error, resolvedRoute: ?Object`) optional function called every time router resolves/rejects route
