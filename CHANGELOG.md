@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.0-alpha.18] - 2016/01/06
+* removed dependency on `rackt/history`
+* onEnter handlers on initial load can be disabled with fourth argument to `createRoutex` or `Route`. `false` will disable running onEnter handlers on initial load (after page is loaded)
+
+## [1.0.0-alpha.17] - 2016/01/04
+* run onEnter handlers on initial load (after page is loaded)
+
 ## [1.0.0-alpha.16] - 2015/12/16
 * add `fullPath` to resolved route
 
