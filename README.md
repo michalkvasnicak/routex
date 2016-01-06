@@ -119,67 +119,101 @@ router.run('/where-you-want-to-go', { /* query params object */});
 
 ### API
 
-- `Router`:
-    - `constructor(routes: array, history: Object, onTransition(error, resolvedRoute):Function)`
-        - history is result of calling `createMemoryHistory(), createHashHistory() or createBrowserHistory()` from `history` 
-    - `wrapOnEnterHandler(wrapper:Function)`:
-        - wraps route onEnter handler with function
-        - it will be called with original handler bound to default arguments (see routeObject) as a first argument
-        - wrapper signature: `function(originalHandler): result from original handler`
-    - `wrapOnLeaveHandler(wrapper:Function)`:
-        - wraps route onLeave handler with function
-        - it will be called with original handler bound to default arguments (see routeObject) as a first argument
-        - wrapper signature: `function(originalHandler): result from original handler`
-    - `createHref(pathname: String, query: Object.<String, *>):String`
-    - `currentRoute():null|routeObject`
-    - `addChangeStartListener(listener:Function):Function` - returns unsubscribe function
-    - `addChangeSuccessListener(listener:Function):Function` - returns unsubscribe function
-    - `addChangeFailListener(listener:Function):Function` - returns unsubscribe function
-    - `addNotFoundListener(listener:Function):Function` - returns unsubscribe function
-    - `run(path: string, query: object):Promise`
-    - `listen()` - starts listening to history pop events (and will fire POPstate event immediately after `listen()` call
+- **`Router`**:
+    - **`constructor(routes, history, onTransition, resolveOnLoad)`**:
+        - **`routes`** (`RouteObject[]`) array of route objects (see below)
+        - **`history`** (`HistoryObject`) history object (see below)
+        - **`onTransition`** (`Function(error: ?Error, resolvedRoute: ?Object`) optional function called every time router resolves/rejects route
+        - **`resolveOnLoad`** (`Boolean`) optional, should route onEnter handlers be called on initial load? (useful if page is rendered in node, so we don't want to run onEnter again)
+    - **`wrapOnEnterHandler(wrapper)`**:
+        - **`wrapper`** (`Function(Function)`):
+            - wrapper is function receiving route onEnter handler and returning its result
+            - can be used to decorate onEnter handler (e.g. passing some variables, etc)
+            - it will be called with original handler bound to default arguments (see routeObject) as a first argument
+            - `router.wrapOnEnterHandler((onEnter) => onEnter(someVar)` will append someVar to default onEnter argument list
+    - **`wrapOnLeaveHandler(wrapper)`**:
+        - **`wrapper`** (`Function(Function)`):
+            - wrapper is function receiving route onLeave handler and returning its result
+            - can be used to decorate onLeave handler (e.g. passing some variables, etc)
+            - it will be called with original handler bound to default arguments (see routeObject) as a first argument
+            - `router.wrapOnLeaveHandler((onLeave) => onLeave(someVar)` will append someVar to default onLeave argument list
+    - **`createHref(pathname, query):String`**
+        - **`pathname`** (`String`) - url pathname
+        - **`query`** (`?Object.<String, *>`) - optional query parameters
+        - creates link
+    - **`currentRoute():null|RouteObject`** returns current route
+    - **`addChangeStartListener(listener:Function):Function`** - returns unsubscribe function
+    - **`addChangeSuccessListener(listener:Function):Function`** - returns unsubscribe function
+    - **`addChangeFailListener(listener:Function):Function`** - returns unsubscribe function
+    - **`addNotFoundListener(listener:Function):Function`** - returns unsubscribe function
+    - **`run(path, query):Promise`**:
+        - **`path`** (`String`) - url pathname
+        - **`query`** (`?Object.<String, *>`) - optional query parameters
+        - resolves route for given pathname
+    - **`listen()`** - starts listening to history pop events (and will fire POPstate event immediately after `listen()` call
 
-- `createRoutex(routes: array, history: History, onTransition(error, resolvedRoute): Function):{{ store: Function, reducer: { router: Function } }}`
-    - `routes`: array of routeObject (see below)
-    - `history` instance of History subclass
-    - `onTransition: function` called everytime routex resolves/rejects route
-    - returns
-        - `store: Function` - high order store function
-        - `reducer: { router: Function }`
-        -   - object used in combineReducers  
-- `<View /> component`: use it where you want to render routes (needs `store` in context)
-- `<Link to="path" query={{}} stateProps={{}} /> component`: use it where you want `<a>` to route (needs `store` in context)
-    - `to: string` - path
-    - `query: object` - query string params
-    - `stateProps: object`
-        - `active: object` - properties assigned to `<a>` if `href` is active (matched)
-        - `inactive: object` - properties assigned to `<a>` if `href` is inactive (not matched)
-- `actions.transitionTo(path: string, query: object)`
-    - creates action which will routex try to transition to
-    - `path: string` - path without query string
-    - `query: Object.<string, *>` - query string parameters
+- **`createRoutex(routes: array, history: History, onTransition(error, resolvedRoute): Function, resolveOnLoad: Boolean):{{ store: Function, reducer: { router: Function } }}`**
+    - **`routes`** (`RouteObject[]`) array of RouteObject (see below)
+    - **`history`** (`HistoryObject`) history object (see below)
+    - **`onTransition`** (`Function(error: ?Error, resolvedRoute: ?Object`) optional function called every time router resolves/rejects route
+    - **`resolveOnLoad`** (`Boolean`) optional, should route onEnter handlers be called on initial load? (useful if page is rendered in node, so we don't want to run onEnter again)
+    - returns (`Object`)
+        - **`store`** (`Function`) - high order store function
+        - **`reducer`** (`{ router: Function }`) - object usable in `combineReducers` of `redux`
 
-- `routeObject: object`:
-    - `path: string (required)` - route path (regexp will be created from it)
+- **`actions.transitionTo(pathname, query)`**
+    - creates action, that routex store will try to transition to
+    - **`path`** (`String`) - path without query string of new route
+    - **`query`** (`Object.<String, *>`) - optional, parsed query string parameters to object
+
+- **`RouteObject:`** (`Object`):
+    - **`path`** (`String`) - route path (regexp will be created from it)
         - `/path:variable`
         - `/path/:variable`
         - `/path/:variable{\\d+}` - variable should be number
-    - `component: ReactElement (optional)|Function:Promise` 
-        - this is required only for <View /> / React
-        - can be async, have to be a function returning a Promise
-    - `children: array of routeObject (optional) or function returning Promise (which resolves to array)`
-    - `onEnter: function (optional)` 
+    - **`component`** (`Function|ReactElement`) ReactElement (optional)|Function:Promise` 
+        - returns ReactElement or `Function` returning `Promise` resolving to ReactElement
+        - ReactElement is required only in case that you are using `<View />` with React otherwise component can be anything you want
+        - can be async, have to be a function returning a Promise otherwise it is sync
+    - **`?children`** (`RouteObject[]`)
+        - optional array of RouteObjects or function returning Promise (which resolves to array of RouteObjects)
+    - **`?onEnter`** (`Function`) 
+        - optional route onEnter handler function
         - function used to determine if router can transition to this route (can be used as guard, or to load data needed for view to store)
-        - **this function is called only on `transitionTo action` and not on popState event**
+        - **this function is called only on `transitionTo action` and not on popState event (back and forward browser buttons)**
         - function signature is `function (currentRoute, nextRoute, router):Promise` **if is used outside of createRoutex**
-        - function signature is `function (currentRoute, nextRoute, router, dispatch, getState):Promise` **if is used by createRoutex**
-            - `currentRoute: routeObject|null` - current state of routex
-            - `nextRoute: routeObject` - route we are transitioning to
-            - `router: Router` - instance of router
-            - **returns Promise**
+        - function signature is `function (currentRoute, nextRoute, router, dispatch, getState):Promise` **if is used by createRoutex, because it is wrapped**
+            - **`currentRoute`** (`RouteObject|null`)` - current state of routex
+            - **`nextRoute`** (`RouteObject`) - route we are transitioning to
+            - **`router`**: (`Router`) - instance of router
+            - returns **`Promise`**
                 - if promise is resolved, transition will finish and changes the state of the router reducer
                 - if promise is rejected, transition will finish but it won't change the state of the router reducer
-    - `onLeave: function (optional)`
-        - signature is same as in the onEnter
+    - **`?onLeave`** (`Function`)
+        - optional route onLeave handler function
+        - signature is same as in the `onEnter`
         - function used to determine if router can transition from this route (can be used as guard, ...) to a new route
-        - **this function is called only on `transitionTo action` and not on popState event**
+        - **this function is called only on `transitionTo action` and not on popState event (back and forward browser buttons)**
+
+### React components
+
+#### `<View>` Component
+
+Use this component whenever you want to render routes. This component needs `store` to be accessible in context.
+`<View />` components can be nested, so you can use them in your own components (in case of nested routes)
+
+```
+<View /> // will render current route component (if route component renders <View /> too, it will render component of nested route
+```
+
+#### `<Link>` Component
+
+Use this component whenever you want an `<a>` element to go to route. This component need `store` to be accessible in context.
+Internally this component is dispatching action `transitionTo()`
+
+**Props**:
+    - **`to`** (`String`) - url pathname to go to
+    - **`query`** (`?Object.<String, *>`) - optional, query parameters (will be add to `href` attribute)
+    - **`stateProps`** (`?Object.<String, Object.<String, *>>`) - properties for `active`, `inactive` state of `<Link/>`
+        - **`active`** (`?Object.<String, *>`) - optional props to be assigned if `<Link/>` `href` is active (matching current route)
+        - **`inactive`** (`?Object.<String, *>`) - optional props to be assigned if `<Link/>` `href` is inactive (not matching current route)
