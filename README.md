@@ -2,15 +2,15 @@
 
 [![Circle CI](https://circleci.com/gh/michalkvasnicak/routex.svg?style=svg)](https://circleci.com/gh/michalkvasnicak/routex)
 
-Simple router for [Redux](https://github.com/gaearon/redux) universal applications. Can be used with [React](https://github.com/facebook/react) too.
-
-**This library is experimental and it not tested in production!! Use at your own risk! Pull requests are welcome**
+Simple router for [Redux](https://github.com/rackt/redux) universal applications. Can be used with [React](https://github.com/facebook/react) too.
 
 ## Installation
 
 `npm install routex`
 
-**Routex requires history^1.0.0 package to be installed**
+## Requirements
+
+**Routex needs some abstraction over browser history, we recommend to use [rackt/history^1.0.0](https://github.com/rackt/history)**
 
 ## Usage
 
@@ -194,6 +194,26 @@ router.run('/where-you-want-to-go', { /* query params object */});
         - signature is same as in the `onEnter`
         - function used to determine if router can transition from this route (can be used as guard, ...) to a new route
         - **this function is called only on `transitionTo action` and not on popState event (back and forward browser buttons)**
+        
+- **`HistoryObject:`** (`Object`):
+    - abstraction over browser history
+    - **`listen`** (`Function(Function(LocationObject))`) -
+        - method used to register history change events listeners (pop and push)
+    - **`pushState`** (`Function(state, path)`)
+        - pushes state for given path
+        - **`state`** (`?Object`) - state stored for given path
+        - **`path`** (`String)` - full path with query parameters
+    - **`replaceState`** (`Function(state, path)`)
+        - replaces current state with given state and path
+        - **`state`** (`?Object`) - state stored for given path
+        - **`path`** (`String)` - full path with query parameters
+        
+- **`LocationObject:`** (`Object`):
+    - abstraction over current location
+    - **`action`** (`String`) - `POP` or `PUSH`
+    - **`state`** (`?Object`) - current state of location
+    - **`pathname`** (`String`) - pathname without query parameters
+    - **`search`** (`String`) - search part of path (query parameters as string)
 
 ### React components
 

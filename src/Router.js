@@ -1,7 +1,6 @@
 import Route from './Route';
 import { normalizeRouteDefinition, runRouteHandlers, resolveComponents } from './utils/routeUtils';
 import { resolveWithFirstMatched } from './utils/routerUtils';
-import { Actions } from 'history';
 import invariant from 'invariant';
 import { RouteNotFoundError } from './errors';
 import { createHref, parseQuery } from './utils/urlUtils';
@@ -73,7 +72,7 @@ export default class Router {
     _handleChange(location) {
         this.location = location;
 
-        if (location.action === Actions.POP) {
+        if (location.action === 'POP') {
             // on handle pop state (we are moving in history)
             // just match route and call change success because we are assuming that everything has been already resolved
             // so just change route

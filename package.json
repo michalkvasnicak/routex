@@ -28,7 +28,6 @@
     "test": "npm run lint && mocha --compilers js:babel/register --recursive"
   },
   "peerDependencies": {
-    "history": "^1.3.0",
     "redux": "^2.0.0 || ^3.0.0",
     "react-redux": "^2.0.0 || ^3.0.0"
   },
