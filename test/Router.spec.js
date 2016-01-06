@@ -30,14 +30,15 @@ describe('Router', () => {
 
     describe('#listen()', () => {
         it(
-            'starts listening to pop state events and replaces state on initial and replaces state if undefined',
+            'starts listening to pop state events and replaces state on initial and replaces state if undefined (resolveOnLoad = true, run onEnter handlers)',
             (done) => {
                 const changeStart = spy();
                 const changeSuccess = spy();
+                const onEnter = spy();
                 const history = createMemoryHistory();
 
                 const router = new Router(
-                    [{ path: '/', component: 'A' }],
+                    [{ path: '/', component: 'A', onEnter }],
                     history,
                     (err, resolvedRoute) => {
                         try {
@@ -53,12 +54,57 @@ describe('Router', () => {
 
                             expect(changeStart.called).to.be.equal(true);
                             expect(changeSuccess.calledOnce).to.be.equal(true);
+                            expect(onEnter.called).to.be.equal(true);
 
                             done();
                         } catch (e) {
                             done(e);
                         }
                     }
+                );
+
+                spy(history, 'replaceState');
+
+                router.addChangeStartListener(changeStart);
+                router.addChangeSuccessListener(changeSuccess);
+
+                router.listen();
+            }
+        );
+
+        it(
+            'starts listening to pop state events and replaces state on initial and replaces state if undefined (resolveOnLoad = false, do not run onEnter handlers)',
+            (done) => {
+                const changeStart = spy();
+                const changeSuccess = spy();
+                const onEnter = spy();
+                const history = createMemoryHistory();
+
+                const router = new Router(
+                    [{ path: '/', component: 'A', onEnter }],
+                    history,
+                    (err, resolvedRoute) => {
+                        try {
+                            expect(err).to.be.equal(null);
+                            expect(resolvedRoute).to.be.an('object');
+                            expect(resolvedRoute.pathname).to.be.equal('/');
+                            expect(resolvedRoute.fullPath).to.be.equal('/');
+                            expect(resolvedRoute.components).to.be.eql(['A']);
+
+                            expect(history.replaceState.calledOnce).to.be.equal(true);
+                            expect(history.replaceState.getCall(0).args[0]).to.be.equal(resolvedRoute);
+                            expect(history.replaceState.getCall(0).args[1]).to.be.equal('/');
+
+                            expect(changeStart.called).to.be.equal(true);
+                            expect(changeSuccess.calledOnce).to.be.equal(true);
+                            expect(onEnter.called).to.be.equal(false);
+
+                            done();
+                        } catch (e) {
+                            done(e);
+                        }
+                    },
+                    false
                 );
 
                 spy(history, 'replaceState');

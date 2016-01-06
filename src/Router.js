@@ -25,7 +25,8 @@ export default class Router {
     constructor(
         routes = [],
         history,
-        onTransition = function transitionFinished() {}
+        onTransition = function transitionFinished() {},
+        resolveOnLoad = true
     ) {
         invariant(Array.isArray(routes), `Routes should be an array, ${typeof routes} given.`);
         invariant(
@@ -34,6 +35,9 @@ export default class Router {
         );
 
         this.routes = instantiateRoutes(routes);
+
+        // should onEnter handler run on initial load?
+        this.resolveOnLoad = resolveOnLoad;
 
         // enable queries means that query parameters can be used directly as objects
         this.history = history;
@@ -84,18 +88,27 @@ export default class Router {
                     if (!location.state) {
                         this._callEventListeners('changeStart', currentRoute, newRoute, this);
 
-                        const handlerWrappers = this.handlerWrappers;
+                        if (this.resolveOnLoad) {
+                            const handlerWrappers = this.handlerWrappers;
 
-                        // call only on enter handler (initial run)
-                        runRouteHandlers('onEnter', newRoute, handlerWrappers, currentRoute, newRoute, this).then(
-                            () => resolveComponents(newRoute.components).then(
+                            // call only on enter handler (initial run)
+                            runRouteHandlers('onEnter', newRoute, handlerWrappers, currentRoute, newRoute, this).then(
+                                () => resolveComponents(newRoute.components).then(
+                                    (components) => {
+                                        return this._finishRun({ ...newRoute, components }, path, query, true);
+                                    },
+                                    this._rejectTransition('Route components cannot be resolved')
+                                ),
+                                this._rejectTransition('Route onEnter handlers are rejected.')
+                            );
+                        } else {
+                            resolveComponents(newRoute.components).then(
                                 (components) => {
                                     return this._finishRun({ ...newRoute, components }, path, query, true);
                                 },
                                 this._rejectTransition('Route components cannot be resolved')
-                            ),
-                            this._rejectTransition('Route onEnter handlers are rejected.')
-                        );
+                            );
+                        }
                     } else {
                         this._currentRoute = newRoute;
 
