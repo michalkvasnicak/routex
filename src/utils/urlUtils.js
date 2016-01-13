@@ -1,28 +1,5 @@
-import { parse as _parseQuery, stringify as _stringifyQuery } from 'qs';
-
-/**
- * Parses query
- *
- * @param {String} search
- * @returns {Object.<String, *>}
- */
-export function parseQuery(search) {
-    if (/^\?/.test(search)) {
-        return _parseQuery(search.substring(1));
-    }
-
-    return {};
-}
-
-/**
- * Stringifies query
- *
- * @param {Object.<String, *>} query
- * @returns {String}
- */
-export function stringifyQuery(query = {}) {
-    return _stringifyQuery(query, { arrayFormat: 'brackets' });
-}
+import { parse as parseQuery, stringify as stringifyQuery } from 'query-string';
+export { parse as parseQuery, stringify as stringifyQuery } from 'query-string';
 
 /**
  * Creates href

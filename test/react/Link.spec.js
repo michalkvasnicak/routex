@@ -68,7 +68,7 @@ describe('React', () => {
                 </Provider>
             );
 
-            expect(tree).to.be.equal('<a href="/path/123?test=1&amp;name=Fero"></a>');
+            expect(tree).to.be.equal('<a href="/path/123?name=Fero&amp;test=1"></a>');
         });
 
         describe('adds props from stateProps by current state', () => {

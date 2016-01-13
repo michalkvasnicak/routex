@@ -11,6 +11,7 @@ Simple router for [Redux](https://github.com/rackt/redux) universal applications
 ## Requirements
 
 **Routex needs some abstraction over browser history, we recommend to use [rackt/history^1.0.0](https://github.com/rackt/history)**
+**DO NOT USE WITH history > 1.13.1 because it will cause inifinite redirects in mobile Chrome :(**
 
 ## Usage
 
