@@ -47,6 +47,7 @@ describe('Router', () => {
                             expect(resolvedRoute.pathname).to.be.equal('/');
                             expect(resolvedRoute.fullPath).to.be.equal('/');
                             expect(resolvedRoute.components).to.be.eql(['A']);
+                            expect(resolvedRoute.attrs).to.be.eql({});
 
                             expect(history.replaceState.calledOnce).to.be.equal(true);
                             expect(history.replaceState.getCall(0).args[0]).to.be.equal(resolvedRoute);
@@ -81,7 +82,7 @@ describe('Router', () => {
                 const history = createMemoryHistory();
 
                 const router = new Router(
-                    [{ path: '/', component: 'A', onEnter }],
+                    [{ path: '/', component: 'A', onEnter, attrs: { simple: 1 } }],
                     history,
                     (err, resolvedRoute) => {
                         try {
@@ -90,6 +91,7 @@ describe('Router', () => {
                             expect(resolvedRoute.pathname).to.be.equal('/');
                             expect(resolvedRoute.fullPath).to.be.equal('/');
                             expect(resolvedRoute.components).to.be.eql(['A']);
+                            expect(resolvedRoute.attrs).to.be.deep.equal({ simple: 1 });
 
                             expect(history.replaceState.calledOnce).to.be.equal(true);
                             expect(history.replaceState.getCall(0).args[0]).to.be.equal(resolvedRoute);
@@ -190,6 +192,7 @@ describe('Router', () => {
                     expect(resolvedRoute).to.have.property('components').and.be.deep.equal(['a', 'b']);
                     expect(resolvedRoute).to.have.property('vars').and.be.deep.equal({});
                     expect(resolvedRoute).to.have.property('query').and.be.deep.equal({ a: 1, b: 0 });
+                    expect(resolvedRoute).to.have.property('attrs').and.be.deep.equal({});
                     expect(router.currentRoute()).to.be.an('object');
                     expect(history.pushState.calledOnce).to.be.equal(true);
                     expect(history.pushState.getCall(0).args[0]).to.be.equal(resolvedRoute);
@@ -212,6 +215,9 @@ describe('Router', () => {
                     {
                         path: '/',
                         component: App,
+                        attrs: {
+                            overridden: false
+                        },
                         children: () => Promise.resolve([
                             {
                                 path: 'test',
@@ -239,6 +245,7 @@ describe('Router', () => {
                     expect(resolvedRoute).to.have.property('components').and.be.deep.equal([App, App]);
                     expect(resolvedRoute).to.have.property('vars').and.be.deep.equal({});
                     expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
+                    expect(resolvedRoute).to.have.property('attrs').and.be.deep.equal({ overridden: false });
                     expect(router.currentRoute()).to.be.an('object');
                     expect(history.pushState.calledOnce).to.be.equal(true);
                     expect(changeStart.calledOnce).to.be.equal(true);
@@ -257,7 +264,10 @@ describe('Router', () => {
                     {
                         path: '/',
                         component: 'a',
-                        children: () => Promise.resolve([{ path: 'test/:variable', component: 'b' }])
+                        attrs: {
+                            override: true
+                        },
+                        children: () => Promise.resolve([{ path: 'test/:variable', component: 'b', attrs: { override: false } }])
                     }
                 ],
                 history = createMemoryHistory(),
@@ -281,6 +291,7 @@ describe('Router', () => {
                         variable: '10'
                     });
                     expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
+                    expect(resolvedRoute).to.have.property('attrs').and.be.deep.equal({ override: false });
                     expect(router.currentRoute()).to.be.an('object');
                     expect(history.pushState.calledOnce).to.be.equal(true);
                     expect(changeStart.calledOnce).to.be.equal(true);
@@ -361,6 +372,7 @@ describe('Router', () => {
                     expect(resolvedRoute).to.have.property('components').and.be.deep.equal(['a', 'b']);
                     expect(resolvedRoute).to.have.property('vars').and.be.deep.equal({});
                     expect(resolvedRoute).to.have.property('query').and.be.deep.equal({});
+                    expect(resolvedRoute).to.have.property('attrs').and.be.deep.equal({});
                     expect(router.currentRoute()).to.be.equal(resolvedRoute);
 
                     expect(history.pushState.calledOnce).to.be.equal(true);
@@ -375,6 +387,7 @@ describe('Router', () => {
                             expect(_resolvedRoute).to.have.property('components').and.be.deep.equal(['a', 'c']);
                             expect(_resolvedRoute).to.have.property('vars').and.be.deep.equal({});
                             expect(_resolvedRoute).to.have.property('query').and.be.deep.equal({});
+                            expect(_resolvedRoute).to.have.property('attrs').and.be.deep.equal({});
                             expect(router.currentRoute()).to.be.equal(_resolvedRoute);
 
                             expect(history.pushState.calledTwice).to.be.equal(true);
@@ -422,10 +435,12 @@ describe('Router', () => {
                     expect(resolvedRoute).to.have.property('pathname').and.be.equal('/');
                     expect(resolvedRoute).to.have.property('components').and.be.deep.equal(['a', 'b']);
                     expect(resolvedRoute).to.have.property('vars').and.be.deep.equal({});
+                    expect(resolvedRoute).to.have.property('attrs').and.be.deep.equal({});
                     expect(router.currentRoute()).to.be.an('object');
                     expect(router.currentRoute()).to.have.property('pathname').and.be.equal('/');
                     expect(router.currentRoute()).to.have.property('components').and.be.deep.equal(['a', 'b']);
                     expect(router.currentRoute()).to.have.property('vars').and.be.deep.equal({});
+                    expect(router.currentRoute()).to.have.property('attrs').and.be.deep.equal({});
                     expect(history.pushState.calledOnce).to.be.equal(true);
                     expect(changeStart.calledOnce).to.be.equal(true);
                     expect(changeSuccess.calledOnce).to.be.equal(true);

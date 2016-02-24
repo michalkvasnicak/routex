@@ -29,7 +29,10 @@ const routes = [
                 path: 'about',
                 children: [/* ... */]
             }
-        ]
+        ],
+        attrs: {
+            custom: true // optional custom attributes to assign to route
+        }
     }/* ... */
 ];
 
@@ -73,9 +76,11 @@ const routes = [
     {
         path: '/',
         component: App, // you need components in all routes because <View /> needs to render them
+        attrs: {}, // default attrs
         children: [
             {
                 path: 'about',
+                attrs: { test: 1 },
                 component: () => Promise.resolve(About),
                 children: () => Promise.resolve([{ path: '/', component: Child }])
             }
@@ -194,6 +199,9 @@ router.run('/where-you-want-to-go', { /* query params object */});
         - signature is same as in the `onEnter`
         - function used to determine if router can transition from this route (can be used as guard, ...) to a new route
         - **this function is called only on `transitionTo action` and not on popState event (back and forward browser buttons)**
+    - **`?attrs`** (`Object`)
+        - optional object of attributes assigned to route
+        - is overridden by child attributes if have same key name
         
 - **`HistoryObject:`** (`Object`):
     - abstraction over browser history
