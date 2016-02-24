@@ -231,7 +231,7 @@ Use this component whenever you want to render routes. This component needs `sto
 Use this component whenever you want an `<a>` element to go to route. This component need `store` to be accessible in context.
 Internally this component is dispatching action `transitionTo()`
 
-**Props**:
+- **Props**:
     - **`to`** (`String`) - url pathname to go to
     - **`query`** (`?Object.<String, *>`) - optional, query parameters (will be add to `href` attribute)
     - **`stateProps`** (`?Object.<String, Object.<String, *>>`) - properties for `active`, `inactive` state of `<Link/>`
