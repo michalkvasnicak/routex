@@ -81,7 +81,8 @@ export default class Route {
       children = [],
       onEnter,
       onLeave,
-      component
+      component,
+      attrs = {}
     ) {
         const pathType = typeof path;
         const basePathType = typeof basePath;
@@ -129,6 +130,8 @@ export default class Route {
         this.component = component;
 
         this.children = children;
+
+        this.attrs = attrs;
     }
 
     match(path, query) {
@@ -149,7 +152,8 @@ export default class Route {
                         route.children,
                         route.onEnter,
                         route.onLeave,
-                        route.component
+                        route.component,
+                        route.attrs
                     );
                 });
             };
@@ -170,7 +174,8 @@ export default class Route {
                         fullPath: createHref(path, query),
                         components: [this.component],
                         onEnter: [this.onEnter],
-                        onLeave: [this.onLeave]
+                        onLeave: [this.onLeave],
+                        attrs: this.attrs
                     });
                 }
 
@@ -200,7 +205,7 @@ export default class Route {
                             // try to match children and resolve with first matched
                             resolveWithFirstMatched(this.children, path, query).then(
                                 (match) => {
-                                    const { vars, onEnter, onLeave, components } = match;
+                                    const { vars, onEnter, onLeave, components, attrs } = match;
 
                                     resolve({
                                         pathname: path,
@@ -209,7 +214,8 @@ export default class Route {
                                         fullPath: createHref(path, query),
                                         components: [this.component, ...components],
                                         onEnter: [this.onEnter, ...onEnter],
-                                        onLeave: [this.onLeave, ...onLeave]
+                                        onLeave: [this.onLeave, ...onLeave],
+                                        attrs: { ...this.attrs, ...attrs }
                                     });
                                 },
                                 resolveOnlyCurrentIfNoError // this is called when children don't match

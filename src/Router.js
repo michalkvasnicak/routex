@@ -15,7 +15,8 @@ function instantiateRoutes(routes) {
             normalized.children,
             normalized.onEnter,
             normalized.onLeave,
-            normalized.component
+            normalized.component,
+            normalized.attrs
         );
     });
 }

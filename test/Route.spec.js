@@ -122,6 +122,10 @@ describe('Route', () => {
                         .to.have.property('components')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal(['a']);
+                    expect(match)
+                        .to.have.property('attrs')
+                        .and.to.be.an('object')
+                        .and.to.be.deep.equal({});
                 }
             );
         });
@@ -158,6 +162,10 @@ describe('Route', () => {
                         .to.have.property('components')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal(['a']);
+                    expect(match)
+                        .to.have.property('attrs')
+                        .and.to.be.an('object')
+                        .and.to.be.deep.equal({});
                 }
             );
         });
@@ -165,7 +173,7 @@ describe('Route', () => {
         it('resolves complex route with multiple variables (patterns)', () => {
             const onEnter = () => {};
             const onLeave = () => {};
-            const eagerlyMatchedRoute = new Route('/:from{[0-9]+}-:to{[a-z]+}', '', [], onEnter, onLeave, 'a');
+            const eagerlyMatchedRoute = new Route('/:from{[0-9]+}-:to{[a-z]+}', '', [], onEnter, onLeave, 'a', { a: true });
 
             return eagerlyMatchedRoute.match('/10-a').then(
                 (match) => {
@@ -194,6 +202,10 @@ describe('Route', () => {
                         .to.have.property('components')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal(['a']);
+                    expect(match)
+                        .to.have.property('attrs')
+                        .and.to.be.an('object')
+                        .and.to.be.deep.equal({ a: true });
                 }
             );
         });
@@ -206,10 +218,14 @@ describe('Route', () => {
                     path: '/detail/:id{[a-zA-Z0-9]+}-:slug',
                     component: 'b',
                     onEnter,
-                    onLeave
+                    onLeave,
+                    attrs: {
+                        a: false,
+                        b: true
+                    }
                 }
             ];
-            const eagerlyMatchedRoute = new Route('/:lang{(en|de)}', '', children, onEnter, onLeave, 'a');
+            const eagerlyMatchedRoute = new Route('/:lang{(en|de)}', '', children, onEnter, onLeave, 'a', { a: true });
 
             return eagerlyMatchedRoute.match('/en/detail/565ee0d31709ae7b174eb8a1-test').then(
                 (match) => {
@@ -239,6 +255,10 @@ describe('Route', () => {
                         .to.have.property('components')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal(['a', 'b']);
+                    expect(match)
+                        .to.have.property('attrs')
+                        .and.to.be.an('object')
+                        .and.to.be.deep.equal({ a: false, b: true });
                 }
             );
         });
@@ -278,6 +298,10 @@ describe('Route', () => {
                         .to.have.property('components')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal(['a', 'b']);
+                    expect(match)
+                        .to.have.property('attrs')
+                        .and.to.be.an('object')
+                        .and.to.be.deep.equal({});
                 }
             );
         });
@@ -315,6 +339,10 @@ describe('Route', () => {
                         .to.have.property('components')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal(['a', 'b']);
+                    expect(match)
+                        .to.have.property('attrs')
+                        .and.to.be.an('object')
+                        .and.to.be.deep.equal({});
                 }
             );
         });
@@ -352,6 +380,10 @@ describe('Route', () => {
                         .to.have.property('components')
                         .and.to.be.an('array')
                         .and.to.be.deep.equal(['a', 'b']);
+                    expect(match)
+                        .to.have.property('attrs')
+                        .and.to.be.an('object')
+                        .and.to.be.deep.equal({});
                 }
             );
         });

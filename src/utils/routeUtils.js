@@ -106,7 +106,7 @@ export function buildMatcher(pathPattern, basePath = '/') {
  * Normalizes route definition object (validates it and sets default values)
  *
  * @param {Object} definition
- * @returns {{path: *, children: (*|Array), onEnter: (*|Function), onLeave: (*|Function), component: (*|{})}}
+ * @returns {{path: *, children: (*|Array), onEnter: (*|Function), onLeave: (*|Function), component: (*|{}), attrs: ({})}}
  */
 export function normalizeRouteDefinition(definition) {
     const definitionType = typeof definition;
@@ -128,7 +128,8 @@ export function normalizeRouteDefinition(definition) {
         children: definition.children || [],
         onEnter: definition.onEnter || noop,
         onLeave: definition.onLeave || noop,
-        component: definition.component || null
+        component: definition.component || null,
+        attrs: definition.attrs || {}
     };
 }
 
