@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.0-alpha.21] - 2016/03/10
+* `onEnter` and `onLeave` handlers are resolved always, please make sure in handlers if you need to do something (e.g. ajax calls, ...) or not
+* removed argument `resolveOnLoad` from router, router always resolves routes and route handlers 
+
 ## [1.0.0-alpha.18] - 2016/01/06
 * removed dependency on `rackt/history`
 * onEnter handlers on initial load can be disabled with fourth argument to `createRoutex` or `Route`. `false` will disable running onEnter handlers on initial load (after page is loaded)
