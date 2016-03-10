@@ -20,24 +20,12 @@ import {
  * @param {Array} routes
  * @param {Object} history
  * @param {?Function} onTransition
- * @param {?Boolean} resolveOnLoad   should on enter handler run on initial load?
  * @returns {{router: Router, store: store, reducer: {router: reducer}}}
  */
-export default function createRoutex(routes, history, onTransition, resolveOnLoad) {
+export default function createRoutex(routes, history, onTransition) {
     const initialReducerState = { state: 'INITIAL', route: null };
-    const args = [];
 
-    if (arguments.length >= 4) {
-        args.push(onTransition, resolveOnLoad);
-    } else {
-        if (typeof onTransition === 'boolean') {
-            args.push(undefined, onTransition);
-        } else {
-            args.push(onTransition, undefined);
-        }
-    }
-
-    const router = new Router(routes, history, ...args);
+    const router = new Router(routes, history, onTransition);
 
     const store = (next) => (reducer, initialState) => {
         const modifiedInitialState = initialState;

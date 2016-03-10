@@ -21,12 +21,15 @@ function instantiateRoutes(routes) {
     });
 }
 
+const REPLACE_STATE = 'replace';
+const PUSH_STATE = 'push';
+const DO_NOTHING = 'nope';
+
 export default class Router {
     constructor(
         routes = [],
         history,
-        onTransition = function transitionFinished() {},
-        resolveOnLoad = true
+        onTransition = function transitionFinished() {}
     ) {
         invariant(Array.isArray(routes), `Routes should be an array, ${typeof routes} given.`);
         invariant(
@@ -35,9 +38,6 @@ export default class Router {
         );
 
         this.routes = instantiateRoutes(routes);
-
-        // should onEnter handler run on initial load?
-        this.resolveOnLoad = resolveOnLoad;
 
         // enable queries means that query parameters can be used directly as objects
         this.history = history;
@@ -50,8 +50,6 @@ export default class Router {
             changeFail: [],
             notFound: []
         };
-
-        this.location = null;
 
         this.handlerWrappers = {
             onEnter(onEnter) {
@@ -71,59 +69,12 @@ export default class Router {
     }
 
     _handleChange(location) {
-        this.location = location;
-
         if (location.action === 'POP') {
             // on handle pop state (we are moving in history)
-            // just match route and call change success because we are assuming that everything has been already resolved
-            // so just change route
             const path = location.pathname;
             const query = parseQuery(location.search);
 
-            resolveWithFirstMatched(this.routes, path, query).then(
-                (newRoute) => {
-                    const currentRoute = this._currentRoute;
-
-                    // replace state with new route if is not set (initial load)
-                    if (!location.state) {
-                        this._callEventListeners('changeStart', currentRoute, newRoute, this);
-
-                        if (this.resolveOnLoad) {
-                            const handlerWrappers = this.handlerWrappers;
-
-                            // call only on enter handler (initial run)
-                            runRouteHandlers('onEnter', newRoute, handlerWrappers, currentRoute, newRoute, this).then(
-                                () => resolveComponents(newRoute.components).then(
-                                    (components) => {
-                                        return this._finishRun({ ...newRoute, components }, path, query, true);
-                                    },
-                                    this._rejectTransition('Route components cannot be resolved')
-                                ),
-                                this._rejectTransition('Route onEnter handlers are rejected.')
-                            );
-                        } else {
-                            resolveComponents(newRoute.components).then(
-                                (components) => {
-                                    return this._finishRun({ ...newRoute, components }, path, query, true);
-                                },
-                                this._rejectTransition('Route components cannot be resolved')
-                            );
-                        }
-                    } else {
-                        this._currentRoute = newRoute;
-
-                        this._callEventListeners('changeSuccess', newRoute);
-
-                        // do nothing about state because it is already store
-                        this.onTransition(null, newRoute);
-                    }
-                },
-                () => {
-                    const e = new RouteNotFoundError('Route not found');
-                    this._callEventListeners('notFound', location.pathname, parseQuery(location.search));
-                    this.onTransition(e);
-                }
-            );
+            this.run(path, query, !!location.state ? DO_NOTHING : REPLACE_STATE);
         }
     }
 
@@ -172,18 +123,33 @@ export default class Router {
         };
     }
 
-    _finishRun(resolvedRoute, path, query, replace = false) {
+    /**
+     * Finishes run route resolving
+     *
+     * @param {Object} resolvedRoute
+     * @param {String} path
+     * @param {Object} query
+     * @param {String} action
+     * @returns {Object}
+     * @private
+     */
+    _finishRun(resolvedRoute, path, query, action) {
         this._currentRoute = resolvedRoute;
         this._callEventListeners('changeSuccess', resolvedRoute);
 
-        if (replace) {
-            this.history.replaceState(
-                resolvedRoute,
-                createHref(path, query)
-            );
-        } else {
-            this.history.pushState(resolvedRoute, createHref(path, query));
+        /* eslint-disable default-case */
+        switch (action) {
+            case PUSH_STATE:
+                this.history.pushState(resolvedRoute, createHref(path, query));
+                break;
+            case REPLACE_STATE:
+                this.history.replaceState(
+                    resolvedRoute,
+                    createHref(path, query)
+                );
+                break;
         }
+        /* eslint-enable default-case */
 
         this.onTransition(null, resolvedRoute);
 
@@ -229,9 +195,10 @@ export default class Router {
      *
      * @param {String} path
      * @param {Object} query
+     * @param {String} action
      * @returns {Promise}
      */
-    run(path, query = {}) {
+    run(path, query = {}, action = PUSH_STATE) {
         const runResolvedRoute = (resolvedRoute) => {
             const currentRoute = this._currentRoute;
             this._callEventListeners('changeStart', currentRoute, resolvedRoute, this);
@@ -243,7 +210,7 @@ export default class Router {
                 () => runRouteHandlers('onEnter', resolvedRoute, handlerWrappers, currentRoute, resolvedRoute, this).then(
                     () => resolveComponents(resolvedRoute.components).then(
                         (components) => {
-                            return this._finishRun({ ...resolvedRoute, components }, path, query);
+                            return this._finishRun({ ...resolvedRoute, components }, path, query, action);
                         },
                         this._rejectTransition('Route components cannot be resolved')
                     ),

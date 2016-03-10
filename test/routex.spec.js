@@ -147,8 +147,6 @@ describe('routex', () => {
     });
 
     it('changes state using change success action if pop state event is emitted', (done) => {
-        let _stepper;
-
         const childState = {
             pathname: '/child',
             query: {},
@@ -193,9 +191,7 @@ describe('routex', () => {
             }
         ];
 
-        _stepper = spy(stepper(steps, done));
-
-        store = createRoutexStore(history, _stepper, {
+        store = createRoutexStore(history, stepper(steps, done), {
             router: {
                 state: 'TRANSITIONED',
                 route: {
