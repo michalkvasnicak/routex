@@ -185,7 +185,7 @@ router.run('/where-you-want-to-go', { /* query params object */});
     - **`?onEnter`** (`Function`) 
         - optional route onEnter handler function
         - function used to determine if router can transition to this route (can be used as guard, or to load data needed for view to store)
-        - **this function is called only on `transitionTo action` and not on popState event (back and forward browser buttons)**
+        - **this function is called on popState (moving in browser history using back/forward buttons), on `<Link />` click or dispatching `transitionTo`**
         - function signature is `function (currentRoute, nextRoute, router):Promise` **if is used outside of createRoutex**
         - function signature is `function (currentRoute, nextRoute, router, dispatch, getState):Promise` **if is used by createRoutex, because it is wrapped**
             - **`currentRoute`** (`RouteObject|null`)` - current state of routex
@@ -198,7 +198,7 @@ router.run('/where-you-want-to-go', { /* query params object */});
         - optional route onLeave handler function
         - signature is same as in the `onEnter`
         - function used to determine if router can transition from this route (can be used as guard, ...) to a new route
-        - **this function is called only on `transitionTo action` and not on popState event (back and forward browser buttons)**
+        - **this function is called on popState (moving in browser history using back/forward buttons), on `<Link />` click or dispatching `transitionTo`**
     - **`?attrs`** (`Object`)
         - optional object of attributes assigned to route
         - is overridden by child attributes if have same key name
