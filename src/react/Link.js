@@ -22,10 +22,10 @@ export default function createLink(React, connect) {
         }
 
         render() {
-            const { to, query, router } = this.props;
-            let { stateProps, ...props } = this.props;
+            const { to, query, router, stateProps, ...props } = this.props;
             const href = createHref(to, query);
             const { state, route } = router;
+            let newProps = props;
 
             if (state === 'TRANSITIONED' && stateProps && route) {
                 let matches = href === route.pathname;
@@ -38,18 +38,16 @@ export default function createLink(React, connect) {
                     }
                 }
 
-                stateProps = stateProps[matches ? 'active' : 'inactive'] || {};
-
-                props = {
+                newProps = {
                     ...props,
-                    ...stateProps
+                    ...(stateProps[matches ? 'active' : 'inactive'] || {})
                 };
             }
 
             return (
                 <a
                     href={href}
-                    {...props}
+                    {...newProps}
                     onClick={this.handleClick.bind(this)}>
                     {this.props.children}
                 </a>
